@@ -103,9 +103,12 @@
         };
         viewer.camera.setView(initialView);
 
-        // Home button to reset view
+        // Home button to reset view (animated fly-to)
         document.getElementById('homeButton').addEventListener('click', () => {
-            viewer.camera.setView(initialView);
+            viewer.camera.flyTo({
+                destination: initialView.destination,
+                duration: 2.0  // seconds
+            });
         });
 
         // Fullscreen toggle button
