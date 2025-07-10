@@ -13,15 +13,26 @@
   },
   {
     "name": "Enos Elementary School",
-    "lat": 39.81015427334268,
-    "lng": -89.64804609100652,
+    "lat": 39.81371275227684,
+    "lng": -89.66123412161984,
     "url": "https://cherryhillsfamily.org/missions/local/profile/enos-elementary-school"
-  }
+  },
   {
     "name": "First Step Womens Center",
     "lat": 39.81614343832645,
     "lng": -89.64804609100652,
     "url": "https://cherryhillsfamily.org/missions/local/profile/first-step-women-s-center"
+  },
+  {
+    "name": "The Salvation Army",
+    "lat": 39.803123,
+    "lng": -89.650456,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/the-salvation-army"
+  },
+  {
+    "name": "The Refuge",
+    "lat": 39.801234,
+    "lng": -89.650789,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/the-refuge"
   }
-
 ]
