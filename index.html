@@ -151,38 +151,24 @@
           }
         });
 
-        // Threshold altitude (in meters) above which Springfield missions are grouped
-        const groupingAltitude = 2000000;
-        // Springfield, IL bounding box
-        const springfieldBounds = {
-          west: -89.7501,
-          south: 39.65,
-          east: -89.4877,
-          north: 39.8817
-        };
-        // Center point of Springfield for group marker and zoom
-        const springfieldCenter = { lng: -89.6501, lat: 39.7817 };
-        const springfieldRectangle = Cesium.Rectangle.fromDegrees(
-          springfieldBounds.west,
-          springfieldBounds.south,
-          springfieldBounds.east,
-          springfieldBounds.north
-        );
+        // Create a data source for clustering labels and billboards
+        const missionsDataSource = new Cesium.CustomDataSource('missions');
+        viewer.dataSources.add(missionsDataSource);
 
-        // 6. Load missions and manage grouping for Springfield
+        // Configure clustering
+        missionsDataSource.clustering.enabled = true;
+        missionsDataSource.clustering.pixelRange = 30;            // cluster within 30 screen pixels
+        missionsDataSource.clustering.minimumClusterSize = 2;     // at least 2 points to form a cluster
+        missionsDataSource.clustering.clusterBillboards = true;
+        missionsDataSource.clustering.clusterLabels = true;
+        missionsDataSource.clustering.clusterPoints = true;
+
+        // 6. Load missions and add to clustered data source
         fetch('missions.json')
           .then(res => res.json())
           .then(missions => {
-            const springfieldEntities = [];
-            // Create individual mission entities
             missions.forEach(m => {
-              const isLocal = (
-                m.lng >= springfieldBounds.west &&
-                m.lng <= springfieldBounds.east &&
-                m.lat >= springfieldBounds.south &&
-                m.lat <= springfieldBounds.north
-              );
-              const entity = viewer.entities.add({
+              missionsDataSource.entities.add({
                 name: m.name,
                 url: m.url,
                 position: Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 0),
@@ -202,49 +188,13 @@
                   pixelOffset: new Cesium.Cartesian2(0, 10)
                 }
               });
-              if (isLocal) {
-                springfieldEntities.push(entity);
-              }
             });
-            // Create a grouped "Local" marker for Springfield region
-            const localEntity = viewer.entities.add({
-              name: 'Local',
-              position: Cesium.Cartesian3.fromDegrees(springfieldCenter.lng, springfieldCenter.lat, 0),
-              billboard: {
-                image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                scale: 0.8
-              },
-              label: {
-                text: 'Local',
-                font: 'bold 20px sans-serif',
-                fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 3,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                verticalOrigin: Cesium.VerticalOrigin.TOP,
-                pixelOffset: new Cesium.Cartesian2(0, 12)
-              }
-            });
-            // Initial visibility based on altitude
-            const updateGrouping = () => {
-              const height = viewer.camera.positionCartographic.height;
-              const grouped = height > groupingAltitude;
-              localEntity.show = grouped;
-              springfieldEntities.forEach(e => e.show = !grouped);
-            };
-            updateGrouping();
-            viewer.camera.changed.addEventListener(updateGrouping);
-            // Click handler for navigation and grouping
+            // Click handler for navigation
             const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
             handler.setInputAction(click => {
               const picked = viewer.scene.pick(click.position);
-              if (Cesium.defined(picked) && picked.id) {
-                if (picked.id === localEntity) {
-                  viewer.camera.flyTo({ destination: springfieldRectangle });
-                } else if (picked.id.url) {
-                  window.location.href = picked.id.url;
-                }
+              if (Cesium.defined(picked) && picked.id && picked.id.url) {
+                window.location.href = picked.id.url;
               }
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           })
