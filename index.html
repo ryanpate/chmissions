@@ -168,12 +168,30 @@
           springfieldBounds.east,
           springfieldBounds.north
         );
+        // Regional bounding box for surrounding area
+        const regionalBounds = {
+          west: -89.40329365428762,
+          south: 40.488271457701906,
+          east: -87.62502145653507,
+          north: 41.839973864619175
+        };
+        const regionalCenter = {
+          lng: (regionalBounds.west + regionalBounds.east) / 2,
+          lat: (regionalBounds.south + regionalBounds.north) / 2
+        };
+        const regionalRectangle = Cesium.Rectangle.fromDegrees(
+          regionalBounds.west,
+          regionalBounds.south,
+          regionalBounds.east,
+          regionalBounds.north
+        );
 
         // 6. Load missions and manage grouping for Springfield
         fetch('missions.json')
           .then(res => res.json())
           .then(missions => {
             const springfieldEntities = [];
+            const regionalEntities = [];
             // Create individual mission entities
             missions.forEach(m => {
               const isLocal = (
@@ -205,6 +223,15 @@
               if (isLocal) {
                 springfieldEntities.push(entity);
               }
+              const isRegional = (
+                m.lng >= regionalBounds.west &&
+                m.lng <= regionalBounds.east &&
+                m.lat >= regionalBounds.south &&
+                m.lat <= regionalBounds.north
+              );
+              if (isRegional) {
+                regionalEntities.push(entity);
+              }
             });
             // Create a grouped "Local" marker for Springfield region
             const localEntity = viewer.entities.add({
@@ -226,12 +253,33 @@
                 pixelOffset: new Cesium.Cartesian2(0, 12)
               }
             });
+            const regionalEntity = viewer.entities.add({
+              name: 'Regional',
+              position: Cesium.Cartesian3.fromDegrees(regionalCenter.lng, regionalCenter.lat, 0),
+              billboard: {
+                image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                scale: 0.8
+              },
+              label: {
+                text: 'Regional',
+                font: 'bold 20px sans-serif',
+                fillColor: Cesium.Color.CYAN,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 3,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.TOP,
+                pixelOffset: new Cesium.Cartesian2(0, 12)
+              }
+            });
             // Initial visibility based on altitude
             const updateGrouping = () => {
               const height = viewer.camera.positionCartographic.height;
               const grouped = height > groupingAltitude;
               localEntity.show = grouped;
+              regionalEntity.show = grouped;
               springfieldEntities.forEach(e => e.show = !grouped);
+              regionalEntities.forEach(e => e.show = !grouped);
             };
             updateGrouping();
             viewer.camera.changed.addEventListener(updateGrouping);
@@ -240,7 +288,9 @@
             handler.setInputAction(click => {
               const picked = viewer.scene.pick(click.position);
               if (Cesium.defined(picked) && picked.id) {
-                if (picked.id === localEntity) {
+                if (picked.id === regionalEntity) {
+                  viewer.camera.flyTo({ destination: regionalRectangle });
+                } else if (picked.id === localEntity) {
                   viewer.camera.flyTo({ destination: springfieldRectangle });
                 } else if (picked.id.url) {
                   window.location.href = picked.id.url;
