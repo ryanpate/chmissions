@@ -6,9 +6,22 @@
     "url": "https://www.cherryhillsfamily.org/missions/global/profile/nate-and-insa-brewer"
   },
   {
-    "name": "Pastor Emmanuel",
-    "lat": 6.524379,
-    "lng": 3.379206,
-    "url": "/missions/pastor-emmanuel.html"
+    "name": "The James Project",
+    "lat": 39.7896428394095,
+    "lng": -89.70436802808422,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/the-james-project"
+  },
+  {
+    "name": "Enos Elementary School",
+    "lat": 39.81015427334268,
+    "lng": -89.64804609100652,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/enos-elementary-school"
   }
+  {
+    "name": "First Step Womens Center",
+    "lat": 39.81614343832645,
+    "lng": -89.64804609100652,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/first-step-women-s-center"
+  }
+
 ]
