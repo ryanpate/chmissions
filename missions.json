@@ -58,5 +58,23 @@
     "lat": 39.6637119935077,
     "lng":  -89.48772737421496,
     "url": "https://cherryhillsfamily.org/missions/local/profile/refuge-ranch"
+  },
+  {
+    "name": "Matt and Nadia Lohse",
+    "lat": 41.839973864619175,
+    "lng":  -87.62502145653507,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/matt-and-nadia-lohse"
+  },
+  {
+    "name": "TJ & Emily Lemons",
+    "lat": 40.488271457701906, 
+    "lng":  -88.96748973545199,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/tj-and-emily-lemons"
+  },
+  {
+    "name": "Bryan & Jonell McKenzie",
+    "lat": 40.62884600140587,
+    "lng":  -89.40329365428762,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/bryan-and-jonell-mckenzie"
   }
 ]
