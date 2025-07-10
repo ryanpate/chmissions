@@ -76,10 +76,7 @@
         // 5. Initialize the globe viewer
         const viewer = new Cesium.Viewer('cesiumContainer', {
             imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // satellite imagery
-            terrainProvider: new Cesium.CesiumTerrainProvider({
-                url: Cesium.IonResource.fromAssetId(1),
-                requestVertexNormals: true
-            }),
+            terrainProvider: new Cesium.EllipsoidTerrainProvider(), // simple globe terrain for imagery
             animation: false,
             timeline: false,
             baseLayerPicker: true,
