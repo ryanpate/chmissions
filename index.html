@@ -151,24 +151,38 @@
           }
         });
 
-        // Create a data source for clustering labels and billboards
-        const missionsDataSource = new Cesium.CustomDataSource('missions');
-        viewer.dataSources.add(missionsDataSource);
+        // Threshold altitude (in meters) above which Springfield missions are grouped
+        const groupingAltitude = 2000000;
+        // Springfield, IL bounding box
+        const springfieldBounds = {
+          west: -89.7501,
+          south: 39.65,
+          east: -89.4877,
+          north: 39.8817
+        };
+        // Center point of Springfield for group marker and zoom
+        const springfieldCenter = { lng: -89.6501, lat: 39.7817 };
+        const springfieldRectangle = Cesium.Rectangle.fromDegrees(
+          springfieldBounds.west,
+          springfieldBounds.south,
+          springfieldBounds.east,
+          springfieldBounds.north
+        );
 
-        // Configure clustering
-        missionsDataSource.clustering.enabled = true;
-        missionsDataSource.clustering.pixelRange = 30;            // cluster within 30 screen pixels
-        missionsDataSource.clustering.minimumClusterSize = 2;     // at least 2 points to form a cluster
-        missionsDataSource.clustering.clusterBillboards = true;
-        missionsDataSource.clustering.clusterLabels = true;
-        missionsDataSource.clustering.clusterPoints = true;
-
-        // 6. Load missions and add to clustered data source
+        // 6. Load missions and manage grouping for Springfield
         fetch('missions.json')
           .then(res => res.json())
           .then(missions => {
+            const springfieldEntities = [];
+            // Create individual mission entities
             missions.forEach(m => {
-              missionsDataSource.entities.add({
+              const isLocal = (
+                m.lng >= springfieldBounds.west &&
+                m.lng <= springfieldBounds.east &&
+                m.lat >= springfieldBounds.south &&
+                m.lat <= springfieldBounds.north
+              );
+              const entity = viewer.entities.add({
                 name: m.name,
                 url: m.url,
                 position: Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 0),
@@ -188,17 +202,95 @@
                   pixelOffset: new Cesium.Cartesian2(0, 10)
                 }
               });
+              if (isLocal) {
+                springfieldEntities.push(entity);
+              }
             });
-            // Click handler for navigation
+            // Create a grouped "Local" marker for Springfield region
+            const localEntity = viewer.entities.add({
+              name: 'Local',
+              position: Cesium.Cartesian3.fromDegrees(springfieldCenter.lng, springfieldCenter.lat, 0),
+              billboard: {
+                image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                scale: 0.8
+              },
+              label: {
+                text: 'Local',
+                font: 'bold 20px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 3,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                verticalOrigin: Cesium.VerticalOrigin.TOP,
+                pixelOffset: new Cesium.Cartesian2(0, 12)
+              }
+            });
+            // Initial visibility based on altitude
+            const updateGrouping = () => {
+              const height = viewer.camera.positionCartographic.height;
+              const grouped = height > groupingAltitude;
+              localEntity.show = grouped;
+              springfieldEntities.forEach(e => e.show = !grouped);
+            };
+            updateGrouping();
+            viewer.camera.changed.addEventListener(updateGrouping);
+            // Click handler for navigation and grouping
             const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
             handler.setInputAction(click => {
               const picked = viewer.scene.pick(click.position);
-              if (Cesium.defined(picked) && picked.id && picked.id.url) {
-                window.location.href = picked.id.url;
+              if (Cesium.defined(picked) && picked.id) {
+                if (picked.id === localEntity) {
+                  viewer.camera.flyTo({ destination: springfieldRectangle });
+                } else if (picked.id.url) {
+                  window.location.href = picked.id.url;
+                }
               }
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           })
           .catch(err => console.error('Failed to load missions.json', err));
+    // 7. Label collision avoidance (declutter labels)
+    viewer.scene.postRender.addEventListener(() => {
+      // Project labels to screen and store their bounding boxes
+      const labelEntities = viewer.entities.values.filter(e => e.label && e.show);
+      const boxes = [];
+      labelEntities.forEach(e => {
+        const pos = viewer.scene.cartesianToCanvasCoordinates(
+          e.position.getValue(viewer.clock.currentTime)
+        );
+        if (!pos) return;
+        const label = e.label;
+        const text = label.text.getValue();
+        const fontSize = parseInt(label.font.getValue(), 10) || 20;
+        // Approximate text dimensions
+        const width = text.length * fontSize * 0.6;
+        const height = fontSize;
+        const offset = label.pixelOffset.getValue();
+        boxes.push({ entity: e,
+          left: pos.x + offset.x - width / 2,
+          right: pos.x + offset.x + width / 2,
+          top: pos.y + offset.y - height,
+          bottom: pos.y + offset.y,
+          fontSize
+        });
+      });
+      // Simple O(n^2) collision resolution
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const A = boxes[i], B = boxes[j];
+          if (A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top) {
+            // Nudge the lower-priority label (B) downward
+            const oldOffset = B.entity.label.pixelOffset.getValue();
+            B.entity.label.pixelOffset = new Cesium.ConstantProperty(
+              new Cesium.Cartesian2(oldOffset.x, oldOffset.y + B.fontSize)
+            );
+            // Update B's box to avoid repeated nudges
+            B.top += B.fontSize;
+            B.bottom += B.fontSize;
+          }
+        }
+      }
+    });
     </script>
 </body>
 
