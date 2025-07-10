@@ -88,19 +88,10 @@
             scene3DOnly: true
         });
 
-        // Add Earth at Night (Black Marble) overlay
-        const nightLayer = viewer.imageryLayers.addImageryProvider(
-          new Cesium.IonImageryProvider({ assetId: 3812 })
-        );
-        nightLayer.alpha = 0.6; // adjust transparency to blend with underlying imagery
-        viewer.clock.currentTime = Cesium.JulianDate.now();
-
         // 5b. Enable real-time day/night lighting on the globe
         viewer.scene.globe.enableLighting = true;
         viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
-        // Ensure the clock animates so lighting updates over time
         viewer.clock.shouldAnimate = true;
-        // Optionally, smooth the transition between lit and unlit areas
         viewer.scene.globe.lightingFadeOutDistance = 1000000;
         viewer.scene.globe.lightingFadeInDistance = 3000000;
 
