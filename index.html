@@ -103,6 +103,13 @@
 
         // Home button to reset view (animated fly-to)
         document.getElementById('homeButton').addEventListener('click', () => {
+            // Reset label offsets to original
+            viewer.entities.values
+              .filter(e => e.label && e.originalOffset)
+              .forEach(e => {
+                e.label.pixelOffset = new Cesium.ConstantProperty(e.originalOffset);
+              });
+            // Animate back to home view
             viewer.camera.flyTo({
                 destination: initialView.destination,
                 duration: 2.0  // seconds
