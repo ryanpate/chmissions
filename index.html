@@ -76,7 +76,7 @@
         // 5. Initialize the globe viewer
         const viewer = new Cesium.Viewer('cesiumContainer', {
             imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // satellite imagery
-            terrainProvider: new Cesium.EllipsoidTerrainProvider(),        // flat globe terrain
+            terrainProvider: Cesium.createWorldTerrain({ requestVertexNormals: true }), // high‑res terrain for lighting
             animation: false,
             timeline: false,
             baseLayerPicker: true,
@@ -89,10 +89,11 @@
         });
 
         // Add Earth at Night (Black Marble) overlay
-        const nightLayer = viewer.imageryLayers.addImageryProvider(
-          new Cesium.IonImageryProvider({ assetId: 3812 }) // Ion asset 3812: Black Marble Night Lights
-        );
-        nightLayer.alpha = 0.7; // adjust transparency to blend with underlying imagery
+        // const nightLayer = viewer.imageryLayers.addImageryProvider(
+        //   new Cesium.IonImageryProvider({ assetId: 3812 }) // Ion asset 3812: Black Marble Night Lights
+        // );
+        // nightLayer.alpha = 0.7; // adjust transparency to blend with underlying imagery
+        viewer.clock.currentTime = Cesium.JulianDate.now();
 
         // 5b. Enable real-time day/night lighting on the globe
         viewer.scene.globe.enableLighting = true;
