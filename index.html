@@ -103,13 +103,6 @@
 
         // Home button to reset view (animated fly-to)
         document.getElementById('homeButton').addEventListener('click', () => {
-            // Reset label offsets to original
-            viewer.entities.values
-              .filter(e => e.label && e.originalOffset)
-              .forEach(e => {
-                e.label.pixelOffset = new Cesium.ConstantProperty(e.originalOffset);
-              });
-            // Animate back to home view
             viewer.camera.flyTo({
                 destination: initialView.destination,
                 duration: 2.0  // seconds
@@ -308,47 +301,6 @@
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
           })
           .catch(err => console.error('Failed to load missions.json', err));
-    // 7. Label collision avoidance (declutter labels)
-    viewer.scene.postRender.addEventListener(() => {
-      // Project labels to screen and store boxes
-      const labelEntities = viewer.entities.values.filter(e => e.label && e.show);
-      const boxes = [];
-      labelEntities.forEach(e => {
-        const pos = viewer.scene.cartesianToCanvasCoordinates(
-          e.position.getValue(viewer.clock.currentTime)
-        );
-        if (!pos) return;
-        const offset = e.originalOffset || e.label.pixelOffset.getValue();
-        const text = e.label.text.getValue();
-        const fontSize = parseInt(e.label.font.getValue(), 10) || 18;
-        const width = text.length * fontSize * 0.6;
-        const height = fontSize;
-        // initial box using original offset
-        boxes.push({ entity: e,
-          left: pos.x + offset.x - width/2,
-          right: pos.x + offset.x + width/2,
-          top: pos.y + offset.y - height,
-          bottom: pos.y + offset.y,
-          fontSize
-        });
-      });
-      // resolve collisions by nudging
-      for (let i = 0; i < boxes.length; i++) {
-        for (let j = i + 1; j < boxes.length; j++) {
-          const A = boxes[i], B = boxes[j];
-          if (A.left < B.right && A.right > B.left && A.top < B.bottom && A.bottom > B.top) {
-            // nudge B downward by its fontSize
-            const oldOffset = B.entity.label.pixelOffset.getValue();
-            B.entity.label.pixelOffset = new Cesium.ConstantProperty(
-              new Cesium.Cartesian2(oldOffset.x, oldOffset.y + B.fontSize)
-            );
-            // update B box to avoid repeat
-            B.top += B.fontSize;
-            B.bottom += B.fontSize;
-          }
-        }
-      }
-    });
     </script>
 </body>
 
