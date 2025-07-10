@@ -24,15 +24,39 @@
     "url": "https://cherryhillsfamily.org/missions/local/profile/first-step-women-s-center"
   },
   {
-    "name": "The Salvation Army",
-    "lat": 39.803123,
-    "lng": -89.650456,
-    "url": "https://cherryhillsfamily.org/missions/local/profile/the-salvation-army"
+    "name": "Washington Street Mission",
+    "lat": 39.80539890563301,
+    "lng": -89.65046838235627,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/washington-street-mission"
   },
   {
-    "name": "The Refuge",
-    "lat": 39.801234,
-    "lng": -89.650789,
+    "name": "St. Johns Breadline",
+    "lat": 39.8060442514894,
+    "lng": -89.650741810007,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/st-john-s-breadline"
+  }
+  {
+    "name": "Contact Ministries",
+    "lat": 39.800041674513665,
+    "lng":  -89.64072212591212,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/contact-ministries"
+  }
+  {
+    "name": "Powerlight Fest",
+    "lat": 39.78186784059419,
+    "lng":  -89.64999534227154,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/powerlight-fest"
+  }
+  {
+    "name": "Fellowship of Christian Athletes",
+    "lat": 39.72721028580847,
+    "lng":  -89.6431716193549,
+    "url": "https://cherryhillsfamily.org/missions/local/profile/fellowship-of-christian-athletes"
+  }
+  {
+    "name": "Refuge Ranch",
+    "lat": 39.6637119935077,
+    "lng":  -89.48772737421496,
     "url": "https://cherryhillsfamily.org/missions/local/profile/refuge-ranch"
   }
 ]
