@@ -88,6 +88,12 @@
             scene3DOnly: true
         });
 
+        // Add Earth at Night (Black Marble) overlay
+        const nightLayer = viewer.imageryLayers.addImageryProvider(
+          new Cesium.IonImageryProvider({ assetId: 3812 }) // Ion asset 3812: Black Marble Night Lights
+        );
+        nightLayer.alpha = 0.7; // adjust transparency to blend with underlying imagery
+
         // 5b. Enable real-time day/night lighting on the globe
         viewer.scene.globe.enableLighting = true;
         viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
