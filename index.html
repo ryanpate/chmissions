@@ -163,6 +163,11 @@
       font-weight: 600;
       color: #333;
     }
+
+    /* Clickable label styling */
+    .cesium-label {
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -432,7 +437,7 @@
           document.getElementById('totalContinents').textContent = stats.continents.size;
         }
 
-        // Create grouped markers
+        // Create grouped markers (without billboards - text only)
         const localEntity = viewer.entities.add({
           name: 'Local Missions',
           position: Cesium.Cartesian3.fromDegrees(
@@ -440,11 +445,6 @@
             config.regions.springfield.center.lat,
             0
           ),
-          billboard: {
-            image: createCustomPin(config.categories.local.color),
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            scale: config.categories.local.groupScale
-          },
           label: {
             text: `${config.categories.local.icon} ${config.regions.springfield.label} (${springfieldEntities.length})`,
             font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
@@ -452,11 +452,8 @@
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 3,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.TOP,
-            pixelOffset: new Cesium.Cartesian2(
-              config.regions.springfield.labelOffset.x,
-              config.regions.springfield.labelOffset.y
-            )
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            pixelOffset: new Cesium.Cartesian2(0, 0)
           }
         });
 
@@ -467,11 +464,6 @@
             config.regions.regional.center.lat,
             0
           ),
-          billboard: {
-            image: createCustomPin(config.categories.regional.color),
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            scale: config.categories.regional.groupScale
-          },
           label: {
             text: `${config.categories.regional.icon} ${config.regions.regional.label} (${regionalEntities.length})`,
             font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
@@ -479,11 +471,8 @@
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 3,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.TOP,
-            pixelOffset: new Cesium.Cartesian2(
-              config.regions.regional.labelOffset.x,
-              config.regions.regional.labelOffset.y
-            )
+            verticalOrigin: Cesium.VerticalOrigin.CENTER,
+            pixelOffset: new Cesium.Cartesian2(0, 0)
           }
         });
 
