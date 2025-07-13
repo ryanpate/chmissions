@@ -22,7 +22,7 @@
       height: 100%;
     }
 
-    /* Enhanced button styling */
+    /* Enhanced button styling with proper spacing */
     .control-button {
       position: absolute;
       z-index: 10;
@@ -51,7 +51,8 @@
 
     #fullscreenButton {
       top: 20px;
-      left: 100px;
+      left: 120px;
+      /* Increased spacing between buttons */
     }
 
     /* Info panel for mission details */
@@ -199,9 +200,13 @@
   <div id="cesiumContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Cesium.js"></script>
+  <script src="missions-config.js"></script>
   <script>
+    // Use configuration from external file
+    const config = MISSIONS_CONFIG;
+
     // Cesium Ion access token
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1OWNhMDFjNi0wZTQ5LTRhMTQtYjVlOC0xZDExMDNjNTlmNjMiLCJpZCI6MzIwMTI0LCJpYXQiOjE3NTIxMTA1OTV9._asU_UV5t-_Z4Wx_VWoLS0-fg5T-GqrrrAzgTh75W-o';
+    Cesium.Ion.defaultAccessToken = config.cesiumToken;
 
     // Initialize the globe viewer with enhanced settings
     const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -228,25 +233,35 @@
       })
     });
 
-    // Enhanced lighting settings
-    viewer.scene.globe.enableLighting = true;
-    viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
-    viewer.clock.shouldAnimate = true;
-    viewer.scene.globe.lightingFadeOutDistance = 1000000;
-    viewer.scene.globe.lightingFadeInDistance = 3000000;
+    // Apply globe settings from config
+    if (config.globe.enableLighting) {
+      viewer.scene.globe.enableLighting = true;
+      viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
+      viewer.clock.shouldAnimate = true;
+      viewer.scene.globe.lightingFadeOutDistance = config.globe.lightingFadeOutDistance;
+      viewer.scene.globe.lightingFadeInDistance = config.globe.lightingFadeInDistance;
+    }
 
-    // Add atmospheric effects
-    viewer.scene.fog.enabled = true;
-    viewer.scene.fog.density = 0.0001;
-    viewer.scene.globe.showGroundAtmosphere = true;
+    if (config.globe.enableAtmosphere) {
+      viewer.scene.globe.showGroundAtmosphere = true;
+    }
 
-    // Initial camera view
+    if (config.globe.enableFog) {
+      viewer.scene.fog.enabled = true;
+      viewer.scene.fog.density = config.globe.fogDensity;
+    }
+
+    // Initial camera view from config
     const initialView = {
-      destination: Cesium.Cartesian3.fromDegrees(-98.5795, 39.8283, 16500000),
+      destination: Cesium.Cartesian3.fromDegrees(
+        config.camera.initialView.longitude,
+        config.camera.initialView.latitude,
+        config.camera.initialView.altitude
+      ),
       orientation: {
-        heading: Cesium.Math.toRadians(0),
-        pitch: Cesium.Math.toRadians(-90),
-        roll: 0
+        heading: Cesium.Math.toRadians(config.camera.initialView.heading),
+        pitch: Cesium.Math.toRadians(config.camera.initialView.pitch),
+        roll: config.camera.initialView.roll
       }
     };
     viewer.camera.setView(initialView);
@@ -256,7 +271,7 @@
       viewer.camera.flyTo({
         destination: initialView.destination,
         orientation: initialView.orientation,
-        duration: 3.0,
+        duration: config.camera.flyDuration,
         easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
       });
     });
@@ -276,48 +291,32 @@
       }
     });
 
-    // Mission grouping configuration
-    const groupingAltitude = 2000000;
-    const springfieldBounds = {
-      west: -89.7501,
-      south: 39.5,
-      east: -89.4877,
-      north: 39.87
-    };
-    const springfieldCenter = { lng: -89.6501, lat: 39.7817 };
+    // Create rectangles from config
     const springfieldRectangle = Cesium.Rectangle.fromDegrees(
-      springfieldBounds.west,
-      springfieldBounds.south,
-      springfieldBounds.east,
-      springfieldBounds.north
+      config.regions.springfield.bounds.west,
+      config.regions.springfield.bounds.south,
+      config.regions.springfield.bounds.east,
+      config.regions.springfield.bounds.north
     );
 
-    const regionalBounds = {
-      west: -89.40329365428762,
-      south: 40.3,
-      east: -87.62502145653507,
-      north: 41.95
+    // Calculate regional center
+    config.regions.regional.center = {
+      lng: (config.regions.regional.bounds.west + config.regions.regional.bounds.east) / 2,
+      lat: (config.regions.regional.bounds.south + config.regions.regional.bounds.north) / 2
     };
-    const regionalCenter = {
-      lng: (regionalBounds.west + regionalBounds.east) / 2,
-      lat: (regionalBounds.south + regionalBounds.north) / 2
-    };
+
     const regionalRectangle = Cesium.Rectangle.fromDegrees(
-      regionalBounds.west,
-      regionalBounds.south,
-      regionalBounds.east,
-      regionalBounds.north
+      config.regions.regional.bounds.west,
+      config.regions.regional.bounds.south,
+      config.regions.regional.bounds.east,
+      config.regions.regional.bounds.north
     );
-
-    // Mission categories with colors
-    const missionCategories = {
-      local: { color: '#4CAF50', icon: '🏠' },
-      regional: { color: '#2196F3', icon: '🌎' },
-      global: { color: '#FF9800', icon: '🌍' }
-    };
 
     // Function to determine mission category
     function getMissionCategory(mission) {
+      const springfieldBounds = config.regions.springfield.bounds;
+      const regionalBounds = config.regions.regional.bounds;
+
       if (mission.lng >= springfieldBounds.west &&
         mission.lng <= springfieldBounds.east &&
         mission.lat >= springfieldBounds.south &&
@@ -335,8 +334,8 @@
     // Custom billboard image creation
     function createCustomPin(color) {
       const canvas = document.createElement('canvas');
-      canvas.width = 48;
-      canvas.height = 64;
+      canvas.width = config.billboards.pinWidth;
+      canvas.height = config.billboards.pinHeight;
       const ctx = canvas.getContext('2d');
 
       // Draw pin shape
@@ -363,7 +362,7 @@
     }
 
     // Load missions data
-    fetch('missions.json')
+    fetch(config.dataSource)
       .then(res => res.json())
       .then(missions => {
         document.getElementById('loadingIndicator').style.display = 'none';
@@ -375,7 +374,7 @@
         missions.forEach(m => {
           stats.total++;
           const category = getMissionCategory(m);
-          const categoryInfo = missionCategories[category];
+          const categoryInfo = config.categories[category];
 
           // Determine continent based on coordinates
           if (m.lat > 35 && m.lng > -20 && m.lng < 50) stats.continents.add('Europe');
@@ -390,20 +389,35 @@
             billboard: {
               image: createCustomPin(categoryInfo.color),
               verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-              scale: 0.8,
-              scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 2e7, 0.4)
+              scale: categoryInfo.pinScale,
+              scaleByDistance: new Cesium.NearFarScalar(
+                config.billboards.scaleByDistance.near,
+                config.billboards.scaleByDistance.nearScale,
+                config.billboards.scaleByDistance.far,
+                config.billboards.scaleByDistance.farScale
+              )
             },
             label: {
               text: m.name,
-              font: 'bold 16px Arial',
-              fillColor: Cesium.Color.WHITE,
-              outlineColor: Cesium.Color.BLACK,
-              outlineWidth: 3,
+              font: config.labels.font,
+              fillColor: Cesium.Color.fromCssColorString(config.labels.fillColor),
+              outlineColor: Cesium.Color.fromCssColorString(config.labels.outlineColor),
+              outlineWidth: config.labels.outlineWidth,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: Cesium.VerticalOrigin.TOP,
-              pixelOffset: new Cesium.Cartesian2(0, 10),
-              scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 2e7, 0.7),
-              translucencyByDistance: new Cesium.NearFarScalar(1.5e6, 1.0, 5e6, 0.0)
+              pixelOffset: new Cesium.Cartesian2(config.labels.pixelOffset.x, config.labels.pixelOffset.y),
+              scaleByDistance: new Cesium.NearFarScalar(
+                config.labels.scaleByDistance.near,
+                config.labels.scaleByDistance.nearScale,
+                config.labels.scaleByDistance.far,
+                config.labels.scaleByDistance.farScale
+              ),
+              translucencyByDistance: new Cesium.NearFarScalar(
+                config.labels.translucencyByDistance.near,
+                config.labels.translucencyByDistance.nearAlpha,
+                config.labels.translucencyByDistance.far,
+                config.labels.translucencyByDistance.farAlpha
+              )
             }
           });
 
@@ -412,55 +426,71 @@
         });
 
         // Update stats
-        document.getElementById('totalMissions').textContent = stats.total;
-        document.getElementById('totalCountries').textContent = stats.countries.size || '3+';
-        document.getElementById('totalContinents').textContent = stats.continents.size;
+        if (config.ui.showStats) {
+          document.getElementById('totalMissions').textContent = stats.total;
+          document.getElementById('totalCountries').textContent = stats.countries.size || '3+';
+          document.getElementById('totalContinents').textContent = stats.continents.size;
+        }
 
         // Create grouped markers
         const localEntity = viewer.entities.add({
           name: 'Local Missions',
-          position: Cesium.Cartesian3.fromDegrees(springfieldCenter.lng, springfieldCenter.lat, 0),
+          position: Cesium.Cartesian3.fromDegrees(
+            config.regions.springfield.center.lng,
+            config.regions.springfield.center.lat,
+            0
+          ),
           billboard: {
-            image: createCustomPin(missionCategories.local.color),
+            image: createCustomPin(config.categories.local.color),
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            scale: 1.2
+            scale: config.categories.local.groupScale
           },
           label: {
-            text: `${missionCategories.local.icon} Local (${springfieldEntities.length})`,
-            font: 'bold 20px Arial',
+            text: `${config.categories.local.icon} ${config.regions.springfield.label} (${springfieldEntities.length})`,
+            font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 3,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             verticalOrigin: Cesium.VerticalOrigin.TOP,
-            pixelOffset: new Cesium.Cartesian2(0, 20)
+            pixelOffset: new Cesium.Cartesian2(
+              config.regions.springfield.labelOffset.x,
+              config.regions.springfield.labelOffset.y
+            )
           }
         });
 
         const regionalEntity = viewer.entities.add({
           name: 'Regional Missions',
-          position: Cesium.Cartesian3.fromDegrees(regionalCenter.lng, regionalCenter.lat, 0),
+          position: Cesium.Cartesian3.fromDegrees(
+            config.regions.regional.center.lng,
+            config.regions.regional.center.lat,
+            0
+          ),
           billboard: {
-            image: createCustomPin(missionCategories.regional.color),
+            image: createCustomPin(config.categories.regional.color),
             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            scale: 1.2
+            scale: config.categories.regional.groupScale
           },
           label: {
-            text: `${missionCategories.regional.icon} Regional (${regionalEntities.length})`,
-            font: 'bold 20px Arial',
+            text: `${config.categories.regional.icon} ${config.regions.regional.label} (${regionalEntities.length})`,
+            font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
             fillColor: Cesium.Color.WHITE,
             outlineColor: Cesium.Color.BLACK,
             outlineWidth: 3,
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             verticalOrigin: Cesium.VerticalOrigin.TOP,
-            pixelOffset: new Cesium.Cartesian2(0, 20)
+            pixelOffset: new Cesium.Cartesian2(
+              config.regions.regional.labelOffset.x,
+              config.regions.regional.labelOffset.y
+            )
           }
         });
 
         // Update grouping based on camera altitude
         const updateGrouping = () => {
           const height = viewer.camera.positionCartographic.height;
-          const grouped = height > groupingAltitude;
+          const grouped = height > config.camera.groupingAltitude;
           localEntity.show = grouped;
           regionalEntity.show = grouped;
           springfieldEntities.forEach(e => e.show = !grouped);
@@ -482,33 +512,37 @@
             if (picked.id === regionalEntity) {
               viewer.camera.flyTo({
                 destination: regionalRectangle,
-                duration: 2.0
+                duration: config.camera.flyDuration
               });
             } else if (picked.id === localEntity) {
               viewer.camera.flyTo({
                 destination: springfieldRectangle,
-                duration: 2.0
+                duration: config.camera.flyDuration
               });
             } else if (picked.id.url) {
               // Show info panel instead of immediate navigation
-              document.getElementById('missionName').textContent = picked.id.name;
-              document.getElementById('missionDetails').textContent =
-                `Click to visit the ${picked.id.category} mission profile page.`;
-              document.getElementById('missionLink').href = picked.id.url;
-              infoPanel.classList.add('visible');
+              if (config.ui.showInfoPanel) {
+                document.getElementById('missionName').textContent = picked.id.name;
+                document.getElementById('missionDetails').textContent =
+                  `Click to visit the ${picked.id.category} mission profile page.`;
+                document.getElementById('missionLink').href = picked.id.url;
+                infoPanel.classList.add('visible');
+              } else {
+                window.location.href = picked.id.url;
+              }
 
               // Highlight the selected entity
               if (currentHighlight) {
-                currentHighlight.billboard.scale = 0.8;
+                currentHighlight.billboard.scale = config.categories[currentHighlight.category].pinScale;
               }
-              picked.id.billboard.scale = 1.0;
+              picked.id.billboard.scale = config.categories[picked.id.category].pinScale * 1.25;
               currentHighlight = picked.id;
             }
           } else {
             // Hide info panel when clicking empty space
             infoPanel.classList.remove('visible');
             if (currentHighlight) {
-              currentHighlight.billboard.scale = 0.8;
+              currentHighlight.billboard.scale = config.categories[currentHighlight.category].pinScale;
               currentHighlight = null;
             }
           }
@@ -525,9 +559,9 @@
         }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
       })
       .catch(err => {
-        console.error('Failed to load missions.json', err);
+        console.error('Failed to load missions data', err);
         document.getElementById('loadingIndicator').innerHTML =
-          '<p style="color: #d32f2f;">Error loading missions data</p>';
+          `<p style="color: #d32f2f;">${config.messages.loadingError}</p>`;
       });
   </script>
 </body>
