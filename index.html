@@ -2,306 +2,534 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Global Missions | Cherry Hills Church</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <title>Global Missions | Cherry Hills Church</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
 
-    <!-- 1. Cesium CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
 
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+    }
 
-        #cesiumContainer {
-            width: 100%;
-            height: 100%;
-        }
+    /* Enhanced button styling */
+    .control-button {
+      position: absolute;
+      z-index: 10;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+    }
 
-        #homeButton {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1;
-            padding: 8px 12px;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #homeButton:hover {
-            background: rgba(255, 255, 255, 0.8);
-            color: black;
-        }
-        #fullscreenButton {
-            position: absolute;
-            top: 10px;
-            left: 80px;
-            z-index: 1;
-            padding: 8px 12px;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #fullscreenButton:hover {
-            background: rgba(255, 255, 255, 0.8);
-            color: black;
-        }
-    </style>
+    .control-button:hover {
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+
+    #homeButton {
+      top: 20px;
+      left: 20px;
+    }
+
+    #fullscreenButton {
+      top: 20px;
+      left: 100px;
+    }
+
+    /* Info panel for mission details */
+    #infoPanel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 350px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    #infoPanel.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #infoPanel h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    #infoPanel p {
+      margin: 0 0 15px 0;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #infoPanel a {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #0066cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+
+    #infoPanel a:hover {
+      background: #0052a3;
+    }
+
+    /* Loading indicator */
+    #loadingIndicator {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 100;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(0, 102, 204, 0.3);
+      border-radius: 50%;
+      border-top-color: #0066cc;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Stats overlay */
+    #statsOverlay {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+    }
+
+    #statsOverlay h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #666;
+      font-weight: normal;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+      font-size: 13px;
+    }
+
+    .stat-label {
+      color: #666;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: #333;
+    }
+  </style>
 </head>
 
 <body>
+  <button id="homeButton" class="control-button">🏠 Home</button>
+  <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
 
-    <!-- 2. Replace your old map div -->
-    <button id="homeButton">Home</button>
-    <button id="fullscreenButton">Fullscreen</button>
-    <div id="cesiumContainer"></div>
+  <div id="statsOverlay">
+    <h4>MISSIONS OVERVIEW</h4>
+    <div class="stat-item">
+      <span class="stat-label">Total Missions:</span>
+      <span class="stat-value" id="totalMissions">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Countries:</span>
+      <span class="stat-value" id="totalCountries">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Continents:</span>
+      <span class="stat-value" id="totalContinents">0</span>
+    </div>
+  </div>
 
-    <!-- 3. Cesium JS -->
-    <script src="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Cesium.js"></script>
-    <script>
-        // 4. Provide your Cesium Ion access token
-        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1OWNhMDFjNi0wZTQ5LTRhMTQtYjVlOC0xZDExMDNjNTlmNjMiLCJpZCI6MzIwMTI0LCJpYXQiOjE3NTIxMTA1OTV9._asU_UV5t-_Z4Wx_VWoLS0-fg5T-GqrrrAzgTh75W-o';
+  <div id="infoPanel">
+    <h3 id="missionName"></h3>
+    <p id="missionDetails"></p>
+    <a id="missionLink" href="#" target="_blank">Learn More →</a>
+  </div>
 
-        // 5. Initialize the globe viewer
-        const viewer = new Cesium.Viewer('cesiumContainer', {
-            imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }), // satellite imagery
-            terrainProvider: new Cesium.EllipsoidTerrainProvider(), // simple globe terrain for imagery
-            animation: false,
-            timeline: false,
-            baseLayerPicker: true,
-            geocoder: false,
-            homeButton: false,
-            sceneModePicker: true,
-            navigationHelpButton: false,
-            infoBox: false,
-            scene3DOnly: true
+  <div id="loadingIndicator">
+    <div class="spinner"></div>
+    <p style="margin-top: 20px; color: #666;">Loading missions data...</p>
+  </div>
+
+  <div id="cesiumContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Cesium.js"></script>
+  <script>
+    // Cesium Ion access token
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1OWNhMDFjNi0wZTQ5LTRhMTQtYjVlOC0xZDExMDNjNTlmNjMiLCJpZCI6MzIwMTI0LCJpYXQiOjE3NTIxMTA1OTV9._asU_UV5t-_Z4Wx_VWoLS0-fg5T-GqrrrAzgTh75W-o';
+
+    // Initialize the globe viewer with enhanced settings
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+      animation: false,
+      timeline: false,
+      baseLayerPicker: true,
+      geocoder: false,
+      homeButton: false,
+      sceneModePicker: true,
+      navigationHelpButton: false,
+      infoBox: false,
+      scene3DOnly: false,
+      skyBox: new Cesium.SkyBox({
+        sources: {
+          positiveX: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
+          negativeX: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
+          positiveY: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
+          negativeY: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
+          positiveZ: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
+          negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg'
+        }
+      })
+    });
+
+    // Enhanced lighting settings
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
+    viewer.clock.shouldAnimate = true;
+    viewer.scene.globe.lightingFadeOutDistance = 1000000;
+    viewer.scene.globe.lightingFadeInDistance = 3000000;
+
+    // Add atmospheric effects
+    viewer.scene.fog.enabled = true;
+    viewer.scene.fog.density = 0.0001;
+    viewer.scene.globe.showGroundAtmosphere = true;
+
+    // Initial camera view
+    const initialView = {
+      destination: Cesium.Cartesian3.fromDegrees(-98.5795, 39.8283, 16500000),
+      orientation: {
+        heading: Cesium.Math.toRadians(0),
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0
+      }
+    };
+    viewer.camera.setView(initialView);
+
+    // Home button with smooth animation
+    document.getElementById('homeButton').addEventListener('click', () => {
+      viewer.camera.flyTo({
+        destination: initialView.destination,
+        orientation: initialView.orientation,
+        duration: 3.0,
+        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+      });
+    });
+
+    // Enhanced fullscreen functionality
+    const fsButton = document.getElementById('fullscreenButton');
+    fsButton.addEventListener('click', () => {
+      const elem = document.documentElement;
+      if (!document.fullscreenElement) {
+        elem.requestFullscreen?.() || elem.webkitRequestFullscreen?.() ||
+          elem.mozRequestFullScreen?.() || elem.msRequestFullscreen?.();
+        fsButton.textContent = '⛶ Exit Fullscreen';
+      } else {
+        document.exitFullscreen?.() || document.webkitExitFullscreen?.() ||
+          document.mozCancelFullScreen?.() || document.msExitFullscreen?.();
+        fsButton.textContent = '⛶ Fullscreen';
+      }
+    });
+
+    // Mission grouping configuration
+    const groupingAltitude = 2000000;
+    const springfieldBounds = {
+      west: -89.7501,
+      south: 39.5,
+      east: -89.4877,
+      north: 39.87
+    };
+    const springfieldCenter = { lng: -89.6501, lat: 39.7817 };
+    const springfieldRectangle = Cesium.Rectangle.fromDegrees(
+      springfieldBounds.west,
+      springfieldBounds.south,
+      springfieldBounds.east,
+      springfieldBounds.north
+    );
+
+    const regionalBounds = {
+      west: -89.40329365428762,
+      south: 40.3,
+      east: -87.62502145653507,
+      north: 41.95
+    };
+    const regionalCenter = {
+      lng: (regionalBounds.west + regionalBounds.east) / 2,
+      lat: (regionalBounds.south + regionalBounds.north) / 2
+    };
+    const regionalRectangle = Cesium.Rectangle.fromDegrees(
+      regionalBounds.west,
+      regionalBounds.south,
+      regionalBounds.east,
+      regionalBounds.north
+    );
+
+    // Mission categories with colors
+    const missionCategories = {
+      local: { color: '#4CAF50', icon: '🏠' },
+      regional: { color: '#2196F3', icon: '🌎' },
+      global: { color: '#FF9800', icon: '🌍' }
+    };
+
+    // Function to determine mission category
+    function getMissionCategory(mission) {
+      if (mission.lng >= springfieldBounds.west &&
+        mission.lng <= springfieldBounds.east &&
+        mission.lat >= springfieldBounds.south &&
+        mission.lat <= springfieldBounds.north) {
+        return 'local';
+      } else if (mission.lng >= regionalBounds.west &&
+        mission.lng <= regionalBounds.east &&
+        mission.lat >= regionalBounds.south &&
+        mission.lat <= regionalBounds.north) {
+        return 'regional';
+      }
+      return 'global';
+    }
+
+    // Custom billboard image creation
+    function createCustomPin(color) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 48;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+
+      // Draw pin shape
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(24, 24, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw pin point
+      ctx.beginPath();
+      ctx.moveTo(24, 44);
+      ctx.lineTo(12, 24);
+      ctx.lineTo(36, 24);
+      ctx.closePath();
+      ctx.fill();
+
+      // Add white inner circle
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(24, 24, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      return canvas.toDataURL();
+    }
+
+    // Load missions data
+    fetch('missions.json')
+      .then(res => res.json())
+      .then(missions => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+
+        const springfieldEntities = [];
+        const regionalEntities = [];
+        let stats = { total: 0, countries: new Set(), continents: new Set() };
+
+        missions.forEach(m => {
+          stats.total++;
+          const category = getMissionCategory(m);
+          const categoryInfo = missionCategories[category];
+
+          // Determine continent based on coordinates
+          if (m.lat > 35 && m.lng > -20 && m.lng < 50) stats.continents.add('Europe');
+          else if (m.lat > 15 && m.lat < 50 && m.lng > -130 && m.lng < -60) stats.continents.add('North America');
+          else if (m.lat < 15 && m.lng > -85 && m.lng < -35) stats.continents.add('South America');
+
+          const entity = viewer.entities.add({
+            name: m.name,
+            url: m.url,
+            category: category,
+            position: Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 0),
+            billboard: {
+              image: createCustomPin(categoryInfo.color),
+              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              scale: 0.8,
+              scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 2e7, 0.4)
+            },
+            label: {
+              text: m.name,
+              font: 'bold 16px Arial',
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 3,
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              verticalOrigin: Cesium.VerticalOrigin.TOP,
+              pixelOffset: new Cesium.Cartesian2(0, 10),
+              scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 2e7, 0.7),
+              translucencyByDistance: new Cesium.NearFarScalar(1.5e6, 1.0, 5e6, 0.0)
+            }
+          });
+
+          if (category === 'local') springfieldEntities.push(entity);
+          if (category === 'regional') regionalEntities.push(entity);
         });
 
-        // 5b. Enable real-time day/night lighting on the globe
-        viewer.scene.globe.enableLighting = true;
-        viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
-        viewer.clock.shouldAnimate = true;
-        viewer.scene.globe.lightingFadeOutDistance = 1000000;
-        viewer.scene.globe.lightingFadeInDistance = 3000000;
+        // Update stats
+        document.getElementById('totalMissions').textContent = stats.total;
+        document.getElementById('totalCountries').textContent = stats.countries.size || '3+';
+        document.getElementById('totalContinents').textContent = stats.continents.size;
 
-        // 5a. Set an initial camera view to control zoom level
-        const initialView = {
-            destination: Cesium.Cartesian3.fromDegrees(-98.5795, 39.8283, 16500000)
+        // Create grouped markers
+        const localEntity = viewer.entities.add({
+          name: 'Local Missions',
+          position: Cesium.Cartesian3.fromDegrees(springfieldCenter.lng, springfieldCenter.lat, 0),
+          billboard: {
+            image: createCustomPin(missionCategories.local.color),
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            scale: 1.2
+          },
+          label: {
+            text: `${missionCategories.local.icon} Local (${springfieldEntities.length})`,
+            font: 'bold 20px Arial',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.TOP,
+            pixelOffset: new Cesium.Cartesian2(0, 20)
+          }
+        });
+
+        const regionalEntity = viewer.entities.add({
+          name: 'Regional Missions',
+          position: Cesium.Cartesian3.fromDegrees(regionalCenter.lng, regionalCenter.lat, 0),
+          billboard: {
+            image: createCustomPin(missionCategories.regional.color),
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+            scale: 1.2
+          },
+          label: {
+            text: `${missionCategories.regional.icon} Regional (${regionalEntities.length})`,
+            font: 'bold 20px Arial',
+            fillColor: Cesium.Color.WHITE,
+            outlineColor: Cesium.Color.BLACK,
+            outlineWidth: 3,
+            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+            verticalOrigin: Cesium.VerticalOrigin.TOP,
+            pixelOffset: new Cesium.Cartesian2(0, 20)
+          }
+        });
+
+        // Update grouping based on camera altitude
+        const updateGrouping = () => {
+          const height = viewer.camera.positionCartographic.height;
+          const grouped = height > groupingAltitude;
+          localEntity.show = grouped;
+          regionalEntity.show = grouped;
+          springfieldEntities.forEach(e => e.show = !grouped);
+          regionalEntities.forEach(e => e.show = !grouped);
         };
-        viewer.camera.setView(initialView);
+        updateGrouping();
+        viewer.camera.changed.addEventListener(updateGrouping);
 
-        // Home button to reset view (animated fly-to)
-        document.getElementById('homeButton').addEventListener('click', () => {
-            viewer.camera.flyTo({
-                destination: initialView.destination,
-                duration: 2.0  // seconds
-            });
-        });
+        // Enhanced click handling with info panel
+        let currentHighlight = null;
+        const infoPanel = document.getElementById('infoPanel');
 
-        // Fullscreen toggle button
-        const fsButton = document.getElementById('fullscreenButton');
-        fsButton.addEventListener('click', () => {
-          const elem = document.documentElement;
-          if (!document.fullscreenElement) {
-            if (elem.requestFullscreen) {
-              elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) {
-              elem.webkitRequestFullscreen();
-            } else if (elem.mozRequestFullScreen) {
-              elem.mozRequestFullScreen();
-            } else if (elem.msRequestFullscreen) {
-              elem.msRequestFullscreen();
+        const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+
+        // Click handler
+        handler.setInputAction(click => {
+          const picked = viewer.scene.pick(click.position);
+          if (Cesium.defined(picked) && picked.id) {
+            if (picked.id === regionalEntity) {
+              viewer.camera.flyTo({
+                destination: regionalRectangle,
+                duration: 2.0
+              });
+            } else if (picked.id === localEntity) {
+              viewer.camera.flyTo({
+                destination: springfieldRectangle,
+                duration: 2.0
+              });
+            } else if (picked.id.url) {
+              // Show info panel instead of immediate navigation
+              document.getElementById('missionName').textContent = picked.id.name;
+              document.getElementById('missionDetails').textContent =
+                `Click to visit the ${picked.id.category} mission profile page.`;
+              document.getElementById('missionLink').href = picked.id.url;
+              infoPanel.classList.add('visible');
+
+              // Highlight the selected entity
+              if (currentHighlight) {
+                currentHighlight.billboard.scale = 0.8;
+              }
+              picked.id.billboard.scale = 1.0;
+              currentHighlight = picked.id;
             }
           } else {
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-              document.webkitExitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-              document.mozCancelFullScreen();
-            } else if (document.msExitFullscreen) {
-              document.msExitFullscreen();
+            // Hide info panel when clicking empty space
+            infoPanel.classList.remove('visible');
+            if (currentHighlight) {
+              currentHighlight.billboard.scale = 0.8;
+              currentHighlight = null;
             }
           }
-        });
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-        // Attempt to enter fullscreen on page load
-        document.addEventListener('DOMContentLoaded', () => {
-          const elem = document.documentElement;
-          if (elem.requestFullscreen) {
-            elem.requestFullscreen().catch(err => {
-              console.warn('Fullscreen request failed:', err);
-            });
-          } else if (elem.webkitRequestFullscreen) {
-            elem.webkitRequestFullscreen();
-          } else if (elem.mozRequestFullScreen) {
-            elem.mozRequestFullScreen();
-          } else if (elem.msRequestFullscreen) {
-            elem.msRequestFullscreen();
+        // Hover effect
+        handler.setInputAction(movement => {
+          const picked = viewer.scene.pick(movement.endPosition);
+          if (Cesium.defined(picked) && picked.id && picked.id.url) {
+            document.body.style.cursor = 'pointer';
+          } else {
+            document.body.style.cursor = 'default';
           }
-        });
-
-        // Threshold altitude (in meters) above which Springfield missions are grouped
-        const groupingAltitude = 2000000;
-        // Springfield, IL bounding box
-        const springfieldBounds = {
-          west: -89.7501,
-          south: 39.5,
-          east: -89.4877,
-          north: 39.87
-        };
-        // Center point of Springfield for group marker and zoom
-        const springfieldCenter = { lng: -89.6501, lat: 39.7817 };
-        const springfieldRectangle = Cesium.Rectangle.fromDegrees(
-          springfieldBounds.west,
-          springfieldBounds.south,
-          springfieldBounds.east,
-          springfieldBounds.north
-        );
-        // Regional bounding box for surrounding area
-        const regionalBounds = {
-          west: -89.40329365428762,
-          south: 40.3,
-          east: -87.62502145653507,
-          north: 41.95
-        };
-        const regionalCenter = {
-          lng: (regionalBounds.west + regionalBounds.east) / 2,
-          lat: (regionalBounds.south + regionalBounds.north) / 2
-        };
-        const regionalRectangle = Cesium.Rectangle.fromDegrees(
-          regionalBounds.west,
-          regionalBounds.south,
-          regionalBounds.east,
-          regionalBounds.north
-        );
-
-        // 6. Load missions and manage grouping for Springfield
-        fetch('missions.json')
-          .then(res => res.json())
-          .then(missions => {
-            const springfieldEntities = [];
-            const regionalEntities = [];
-            // Create individual mission entities
-            missions.forEach(m => {
-              const isLocal = (
-                m.lng >= springfieldBounds.west &&
-                m.lng <= springfieldBounds.east &&
-                m.lat >= springfieldBounds.south &&
-                m.lat <= springfieldBounds.north
-              );
-              const entity = viewer.entities.add({
-                name: m.name,
-                url: m.url,
-                position: Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 0),
-                billboard: {
-                  image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
-                  verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                  scale: 0.66
-                },
-                label: {
-                  text: m.name,
-                  font: '20px sans-serif',
-                  fillColor: Cesium.Color.WHITE,
-                  outlineColor: Cesium.Color.BLACK,
-                  outlineWidth: 4,
-                  style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                  verticalOrigin: Cesium.VerticalOrigin.TOP,
-                  pixelOffset: new Cesium.Cartesian2(0, 10)
-                }
-              });
-              entity.originalOffset = entity.label.pixelOffset.getValue();
-              if (isLocal) {
-                springfieldEntities.push(entity);
-              }
-              const isRegional = (
-                m.lng >= regionalBounds.west &&
-                m.lng <= regionalBounds.east &&
-                m.lat >= regionalBounds.south &&
-                m.lat <= regionalBounds.north
-              );
-              if (isRegional) {
-                regionalEntities.push(entity);
-              }
-            });
-            // Create a grouped "Local" marker for Springfield region
-            const localEntity = viewer.entities.add({
-              name: 'Local',
-              position: Cesium.Cartesian3.fromDegrees(springfieldCenter.lng, springfieldCenter.lat, 0),
-              billboard: {
-                image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                scale: 0.8
-              },
-              label: {
-                text: 'Local',
-                font: 'bold 20px sans-serif',
-                fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 3,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                verticalOrigin: Cesium.VerticalOrigin.TOP,
-                pixelOffset: new Cesium.Cartesian2(0, 20)
-              }
-            });
-            const regionalEntity = viewer.entities.add({
-              name: 'Regional',
-              position: Cesium.Cartesian3.fromDegrees(regionalCenter.lng, regionalCenter.lat, 0),
-              billboard: {
-                image: 'https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/Images/marker-pin.png',
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                scale: 0.8
-              },
-              label: {
-                text: 'Regional',
-                font: 'bold 20px sans-serif',
-                fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
-                outlineWidth: 3,
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                verticalOrigin: Cesium.VerticalOrigin.TOP,
-                pixelOffset: new Cesium.Cartesian2(0, 0)
-              }
-            });
-            // Initial visibility based on altitude
-            const updateGrouping = () => {
-              const height = viewer.camera.positionCartographic.height;
-              const grouped = height > groupingAltitude;
-              localEntity.show = grouped;
-              regionalEntity.show = grouped;
-              springfieldEntities.forEach(e => e.show = !grouped);
-              regionalEntities.forEach(e => e.show = !grouped);
-            };
-            updateGrouping();
-            viewer.camera.changed.addEventListener(updateGrouping);
-            // Click handler for navigation and grouping
-            const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-            handler.setInputAction(click => {
-              const picked = viewer.scene.pick(click.position);
-              if (Cesium.defined(picked) && picked.id) {
-                if (picked.id === regionalEntity) {
-                  viewer.camera.flyTo({ destination: regionalRectangle });
-                } else if (picked.id === localEntity) {
-                  viewer.camera.flyTo({ destination: springfieldRectangle });
-                } else if (picked.id.url) {
-                  window.location.href = picked.id.url;
-                }
-              }
-            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-          })
-          .catch(err => console.error('Failed to load missions.json', err));
-    </script>
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+      })
+      .catch(err => {
+        console.error('Failed to load missions.json', err);
+        document.getElementById('loadingIndicator').innerHTML =
+          '<p style="color: #d32f2f;">Error loading missions data</p>';
+      });
+  </script>
 </body>
 
 </html>
