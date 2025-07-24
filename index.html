@@ -238,6 +238,70 @@
             line-height: 1.4;
             font-weight: 400;
         }
+
+        /* Mission Legend */
+        #mission-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #mission-legend h3 {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-family: 'Brandon Grotesque', sans-serif;
+        }
+
+        .legend-pin {
+            width: 24px;
+            height: 32px;
+            margin-right: 12px;
+            position: relative;
+        }
+
+        .legend-pin-shape {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .legend-pin img {
+            width: 16px;
+            height: 16px;
+            transform: rotate(45deg);
+        }
+
+        .legend-label {
+            color: #ddd;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .legend-count {
+            color: #4A90E2;
+            font-weight: 600;
+            margin-left: 8px;
+        }
     </style>
 </head>
 
@@ -252,6 +316,34 @@
         <p>🔍 <strong>Zoom:</strong> Scroll or right-click drag</p>
         <p>📍 <strong>View Mission:</strong> Click on any pin</p>
         <p>🏠 <strong>Reset View:</strong> Click Home button</p>
+    </div>
+
+    <div id="mission-legend">
+        <h3>Missions</h3>
+        <div class="legend-item">
+            <div class="legend-pin">
+                <div class="legend-pin-shape">
+                    <img src="assets/logo_local.png" alt="Local">
+                </div>
+            </div>
+            <span class="legend-label">Local <span class="legend-count" id="local-count">(0)</span></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-pin">
+                <div class="legend-pin-shape">
+                    <img src="assets/logo_regional.png" alt="Regional">
+                </div>
+            </div>
+            <span class="legend-label">Regional <span class="legend-count" id="regional-count">(0)</span></span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-pin">
+                <div class="legend-pin-shape">
+                    <img src="assets/logo_global.png" alt="Global">
+                </div>
+            </div>
+            <span class="legend-label">Global <span class="legend-count" id="global-count">(0)</span></span>
+        </div>
     </div>
 
     <button id="home-button">🏠 Home</button>
@@ -479,7 +571,23 @@
             };
 
             viewer.scene.camera.setView(initialView);
+            
+            // Count missions by type and update legend
+            const missionCounts = {
+                local: 0,
+                regional: 0,
+                global: 0
+            };
 
+            missions.forEach(mission => {
+                const type = mission.type || 'local';
+                missionCounts[type]++;
+            });
+
+            // Update legend counts
+            document.getElementById('local-count').textContent = `(${missionCounts.local})`;
+            document.getElementById('regional-count').textContent = `(${missionCounts.regional})`;
+            document.getElementById('global-count').textContent = `(${missionCounts.global})`;
             // Create custom pin billboard with actual logo
             const pinCanvas = document.createElement('canvas');
             pinCanvas.width = 48;
@@ -525,23 +633,70 @@
                 return pinCanvas.toDataURL();
             }
 
-            // Load logo and create pins
-            const logoImg = new Image();
-            logoImg.onload = function () {
-                const pinImage = drawPinWithLogo(logoImg);
-                addMissionPins(pinImage);
+            // Load logos for each mission type
+            const logos = {
+                global: new Image(),
+                regional: new Image(),
+                local: new Image()
             };
-            logoImg.onerror = function () {
-                console.warn('Logo failed to load, using fallback');
-                const pinImage = drawPinWithLogo(null);
-                addMissionPins(pinImage);
+
+            let loadedLogos = 0;
+            const totalLogos = 3;
+
+            // Function to check if all logos are loaded
+            function checkAllLogosLoaded() {
+                loadedLogos++;
+                if (loadedLogos === totalLogos) {
+                    addMissionPins();
+                }
+            }
+
+            // Load global logo
+            logos.global.onload = function () {
+                console.log('Global logo loaded');
+                checkAllLogosLoaded();
             };
-            // Update this path to your actual logo file
-            logoImg.src = 'assets/logo.svg'; // or 'assets/logo.png'
+            logos.global.onerror = function () {
+                console.warn('Global logo failed to load, will use fallback');
+                logos.global = null;
+                checkAllLogosLoaded();
+            };
+            logos.global.src = 'assets/logo_global.png';
+
+            // Load regional logo
+            logos.regional.onload = function () {
+                console.log('Regional logo loaded');
+                checkAllLogosLoaded();
+            };
+            logos.regional.onerror = function () {
+                console.warn('Regional logo failed to load, will use fallback');
+                logos.regional = null;
+                checkAllLogosLoaded();
+            };
+            logos.regional.src = 'assets/logo_regional.png';
+
+            // Load local logo
+            logos.local.onload = function () {
+                console.log('Local logo loaded');
+                checkAllLogosLoaded();
+            };
+            logos.local.onerror = function () {
+                console.warn('Local logo failed to load, will use fallback');
+                logos.local = null;
+                checkAllLogosLoaded();
+            };
+            logos.local.src = 'assets/logo_local.png';
 
             // Function to add mission pins
-            function addMissionPins(pinImage) {
+            function addMissionPins() {
                 missions.forEach((mission) => {
+                    // Determine which logo to use based on mission type
+                    const missionType = mission.type || 'local'; // Default to local if no type specified
+                    const logoToUse = logos[missionType];
+
+                    // Create pin image with appropriate logo
+                    const pinImage = drawPinWithLogo(logoToUse);
+
                     viewer.entities.add({
                         name: mission.name,
                         position: Cesium.Cartesian3.fromDegrees(mission.lng, mission.lat),
