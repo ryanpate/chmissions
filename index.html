@@ -2,557 +2,634 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Global Missions | Cherry Hills Church</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Hills Missions Globe</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.95/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.95/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        /* Brandon Grotesque Font */
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Regular.woff2') format('woff2'),
+                url('assets/fonts/BrandonGrotesque-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
 
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Medium.woff2') format('woff2'),
+                url('assets/fonts/BrandonGrotesque-Medium.woff') format('woff');
+            font-weight: 500;
+            font-style: normal;
+        }
 
-    #cesiumContainer {
-      width: 100%;
-      height: 100%;
-    }
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Bold.woff2') format('woff2'),
+                url('assets/fonts/BrandonGrotesque-Bold.woff') format('woff');
+            font-weight: 600;
+            font-style: normal;
+        }
 
-    /* Enhanced button styling with proper spacing */
-    .control-button {
-      position: absolute;
-      z-index: 10;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      transition: all 0.2s ease;
-    }
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Black.woff2') format('woff2'),
+                url('assets/fonts/BrandonGrotesque-Black.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
 
-    .control-button:hover {
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transform: translateY(-1px);
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    #homeButton {
-      top: 20px;
-      left: 20px;
-    }
+        body {
+            font-family: 'Brandon Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: default;
+            font-weight: 400;
+        }
 
-    #fullscreenButton {
-      top: 20px;
-      left: 120px;
-      /* Increased spacing between buttons */
-    }
+        #cesiumContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
-    /* Info panel for mission details */
-    #infoPanel {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 350px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.3s ease;
-      z-index: 10;
-    }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    #infoPanel.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        #instructions h2 {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #4A90E2;
+            font-weight: 600;
+        }
 
-    #infoPanel h3 {
-      margin: 0 0 10px 0;
-      color: #333;
-      font-size: 18px;
-    }
+        #instructions p {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #ddd;
+            font-weight: 400;
+        }
 
-    #infoPanel p {
-      margin: 0 0 15px 0;
-      color: #666;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+        #home-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
 
-    #infoPanel a {
-      display: inline-block;
-      padding: 8px 16px;
-      background: #0066cc;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-size: 14px;
-      transition: background 0.2s ease;
-    }
+        #home-button:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
 
-    #infoPanel a:hover {
-      background: #0052a3;
-    }
+        #content-frame {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            width: 100%;
+            height: 100%;
+            background: white;
+            transition: left 0.5s ease;
+            z-index: 2000;
+        }
 
-    /* Loading indicator */
-    #loadingIndicator {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 100;
-    }
+        #content-frame.active {
+            left: 0;
+        }
 
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(0, 102, 204, 0.3);
-      border-radius: 50%;
-      border-top-color: #0066cc;
-      animation: spin 1s ease-in-out infinite;
-    }
+        #back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 2001;
+            transition: all 0.3s ease;
+            display: none;
+        }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+        #back-button:hover {
+            background: #357ABD;
+            transform: translateY(-2px);
+        }
 
-    /* Stats overlay */
-    #statsOverlay {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 8px;
-      padding: 15px 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-    }
+        #content-frame.active #back-button {
+            display: block;
+        }
 
-    #statsOverlay h4 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: #666;
-      font-weight: normal;
-    }
+        #content-display {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            color: #333;
+            background: #f5f5f5;
+        }
 
-    .stat-item {
-      display: flex;
-      justify-content: space-between;
-      margin: 5px 0;
-      font-size: 13px;
-    }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: #4A90E2;
+        }
 
-    .stat-label {
-      color: #666;
-    }
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
 
-    .stat-value {
-      font-weight: 600;
-      color: #333;
-    }
+        /* Hide Cesium UI elements for kiosk mode */
+        .cesium-viewer-toolbar,
+        .cesium-viewer-animationContainer,
+        .cesium-viewer-timelineContainer,
+        .cesium-viewer-bottom,
+        .cesium-viewer-fullscreenContainer,
+        .cesium-viewer-vrContainer,
+        .cesium-viewer-geocoderContainer,
+        .cesium-viewer-homeButton,
+        .cesium-viewer-sceneModePicker,
+        .cesium-viewer-projectionPicker,
+        .cesium-viewer-baseLayerPicker,
+        .cesium-viewer-navigationHelpButton,
+        .cesium-viewer-infoBoxContainer {
+            display: none !important;
+        }
 
-    /* Clickable label styling */
-    .cesium-label {
-      cursor: pointer;
-    }
-  </style>
+        .cesium-selection-wrapper {
+            display: none !important;
+        }
+
+        /* Custom info box */
+        .mission-info-box {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 300px;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mission-info-box h3 {
+            font-family: 'Brandon Grotesque', sans-serif;
+            color: #4A90E2;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .mission-info-box p {
+            font-family: 'Brandon Grotesque', sans-serif;
+            color: #ddd;
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+    </style>
 </head>
 
 <body>
-  <button id="homeButton" class="control-button">🏠 Home</button>
-  <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
+    <div id="cesiumContainer"></div>
 
-  <div id="statsOverlay">
-    <h4>MISSIONS OVERVIEW</h4>
-    <div class="stat-item">
-      <span class="stat-label">Total Missions:</span>
-      <span class="stat-value" id="totalMissions">0</span>
+    <div id="instructions">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%234A90E2'%3ECH Missions%3C/text%3E%3C/svg%3E"
+            alt="Logo" class="logo">
+        <h2>How to Use</h2>
+        <p>🌍 <strong>Rotate Globe:</strong> Click and drag to explore</p>
+        <p>🔍 <strong>Zoom:</strong> Scroll or right-click drag</p>
+        <p>📍 <strong>View Mission:</strong> Click on any pin</p>
+        <p>🏠 <strong>Reset View:</strong> Click Home button</p>
     </div>
-    <div class="stat-item">
-      <span class="stat-label">Countries:</span>
-      <span class="stat-value" id="totalCountries">0</span>
+
+    <button id="home-button">🏠 Home</button>
+
+    <div id="content-frame">
+        <button id="back-button">← Return to Map</button>
+        <div id="content-display">
+            <div class="loading">Loading mission information...</div>
+        </div>
     </div>
-    <div class="stat-item">
-      <span class="stat-label">Continents:</span>
-      <span class="stat-value" id="totalContinents">0</span>
+
+    <div class="mission-info-box" id="missionInfoBox">
+        <h3 id="missionName"></h3>
+        <p>Click to view details</p>
     </div>
-  </div>
 
-  <div id="infoPanel">
-    <h3 id="missionName"></h3>
-    <p id="missionDetails"></p>
-    <a id="missionLink" href="#" target="_blank">Learn More →</a>
-  </div>
+    <script>
+        // Set Cesium Ion access token
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2ZmYxYzgzMi1jMjI0LTRiYWUtYjcyNS1jYTlkZWI4MThhNTEiLCJpZCI6MzIwMTI0LCJpYXQiOjE3NTMzMTg3NDd9.NJ7AlxH_emAHLiDuIA5Uv6khpP6gDHB_zEPTWABcLcM';
 
-  <div id="loadingIndicator">
-    <div class="spinner"></div>
-    <p style="margin-top: 20px; color: #666;">Loading missions data...</p>
-  </div>
-
-  <div id="cesiumContainer"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/cesium@1.119/Build/Cesium/Cesium.js"></script>
-  <script src="missions-config.js"></script>
-  <script>
-    // Use configuration from external file
-    const config = MISSIONS_CONFIG;
-
-    // Cesium Ion access token
-    Cesium.Ion.defaultAccessToken = config.cesiumToken;
-
-    // Initialize the globe viewer with enhanced settings
-    const viewer = new Cesium.Viewer('cesiumContainer', {
-      imageryProvider: new Cesium.IonImageryProvider({ assetId: 2 }),
-      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-      animation: false,
-      timeline: false,
-      baseLayerPicker: true,
-      geocoder: false,
-      homeButton: false,
-      sceneModePicker: true,
-      navigationHelpButton: false,
-      infoBox: false,
-      scene3DOnly: false,
-      skyBox: new Cesium.SkyBox({
-        sources: {
-          positiveX: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg',
-          negativeX: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mx.jpg',
-          positiveY: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_py.jpg',
-          negativeY: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_my.jpg',
-          positiveZ: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_pz.jpg',
-          negativeZ: 'https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Assets/Textures/SkyBox/tycho2t3_80_mz.jpg'
-        }
-      })
-    });
-
-    // Apply globe settings from config
-    if (config.globe.enableLighting) {
-      viewer.scene.globe.enableLighting = true;
-      viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
-      viewer.clock.shouldAnimate = true;
-      viewer.scene.globe.lightingFadeOutDistance = config.globe.lightingFadeOutDistance;
-      viewer.scene.globe.lightingFadeInDistance = config.globe.lightingFadeInDistance;
-    }
-
-    if (config.globe.enableAtmosphere) {
-      viewer.scene.globe.showGroundAtmosphere = true;
-    }
-
-    if (config.globe.enableFog) {
-      viewer.scene.fog.enabled = true;
-      viewer.scene.fog.density = config.globe.fogDensity;
-    }
-
-    // Initial camera view from config
-    const initialView = {
-      destination: Cesium.Cartesian3.fromDegrees(
-        config.camera.initialView.longitude,
-        config.camera.initialView.latitude,
-        config.camera.initialView.altitude
-      ),
-      orientation: {
-        heading: Cesium.Math.toRadians(config.camera.initialView.heading),
-        pitch: Cesium.Math.toRadians(config.camera.initialView.pitch),
-        roll: config.camera.initialView.roll
-      }
-    };
-    viewer.camera.setView(initialView);
-
-    // Home button with smooth animation
-    document.getElementById('homeButton').addEventListener('click', () => {
-      viewer.camera.flyTo({
-        destination: initialView.destination,
-        orientation: initialView.orientation,
-        duration: config.camera.flyDuration,
-        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-      });
-    });
-
-    // Enhanced fullscreen functionality
-    const fsButton = document.getElementById('fullscreenButton');
-    fsButton.addEventListener('click', () => {
-      const elem = document.documentElement;
-      if (!document.fullscreenElement) {
-        elem.requestFullscreen?.() || elem.webkitRequestFullscreen?.() ||
-          elem.mozRequestFullScreen?.() || elem.msRequestFullscreen?.();
-        fsButton.textContent = '⛶ Exit Fullscreen';
-      } else {
-        document.exitFullscreen?.() || document.webkitExitFullscreen?.() ||
-          document.mozCancelFullScreen?.() || document.msExitFullscreen?.();
-        fsButton.textContent = '⛶ Fullscreen';
-      }
-    });
-
-    // Create rectangles from config
-    const springfieldRectangle = Cesium.Rectangle.fromDegrees(
-      config.regions.springfield.bounds.west,
-      config.regions.springfield.bounds.south,
-      config.regions.springfield.bounds.east,
-      config.regions.springfield.bounds.north
-    );
-
-    // Calculate regional center
-    config.regions.regional.center = {
-      lng: (config.regions.regional.bounds.west + config.regions.regional.bounds.east) / 2,
-      lat: (config.regions.regional.bounds.south + config.regions.regional.bounds.north) / 2
-    };
-
-    const regionalRectangle = Cesium.Rectangle.fromDegrees(
-      config.regions.regional.bounds.west,
-      config.regions.regional.bounds.south,
-      config.regions.regional.bounds.east,
-      config.regions.regional.bounds.north
-    );
-
-    // Function to determine mission category
-    function getMissionCategory(mission) {
-      const springfieldBounds = config.regions.springfield.bounds;
-      const regionalBounds = config.regions.regional.bounds;
-
-      if (mission.lng >= springfieldBounds.west &&
-        mission.lng <= springfieldBounds.east &&
-        mission.lat >= springfieldBounds.south &&
-        mission.lat <= springfieldBounds.north) {
-        return 'local';
-      } else if (mission.lng >= regionalBounds.west &&
-        mission.lng <= regionalBounds.east &&
-        mission.lat >= regionalBounds.south &&
-        mission.lat <= regionalBounds.north) {
-        return 'regional';
-      }
-      return 'global';
-    }
-
-    // Custom billboard image creation
-    function createCustomPin(color) {
-      const canvas = document.createElement('canvas');
-      canvas.width = config.billboards.pinWidth;
-      canvas.height = config.billboards.pinHeight;
-      const ctx = canvas.getContext('2d');
-
-      // Draw pin shape
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(24, 24, 20, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Draw pin point
-      ctx.beginPath();
-      ctx.moveTo(24, 44);
-      ctx.lineTo(12, 24);
-      ctx.lineTo(36, 24);
-      ctx.closePath();
-      ctx.fill();
-
-      // Add white inner circle
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(24, 24, 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      return canvas.toDataURL();
-    }
-
-    // Load missions data
-    fetch(config.dataSource)
-      .then(res => res.json())
-      .then(missions => {
-        document.getElementById('loadingIndicator').style.display = 'none';
-
-        const springfieldEntities = [];
-        const regionalEntities = [];
-        let stats = { total: 0, countries: new Set(), continents: new Set() };
-
-        missions.forEach(m => {
-          stats.total++;
-          const category = getMissionCategory(m);
-          const categoryInfo = config.categories[category];
-
-          // Determine continent based on coordinates
-          if (m.lat > 35 && m.lng > -20 && m.lng < 50) stats.continents.add('Europe');
-          else if (m.lat > 15 && m.lat < 50 && m.lng > -130 && m.lng < -60) stats.continents.add('North America');
-          else if (m.lat < 15 && m.lng > -85 && m.lng < -35) stats.continents.add('South America');
-
-          const entity = viewer.entities.add({
-            name: m.name,
-            url: m.url,
-            category: category,
-            position: Cesium.Cartesian3.fromDegrees(m.lng, m.lat, 0),
-            billboard: {
-              image: createCustomPin(categoryInfo.color),
-              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-              scale: categoryInfo.pinScale,
-              scaleByDistance: new Cesium.NearFarScalar(
-                config.billboards.scaleByDistance.near,
-                config.billboards.scaleByDistance.nearScale,
-                config.billboards.scaleByDistance.far,
-                config.billboards.scaleByDistance.farScale
-              )
+        // Mission data
+        const missions = [
+            {
+                "name": "Nate and Insa Brewer",
+                "lat": 48.210033,
+                "lng": 16.363449,
+                "url": "https://www.cherryhillsfamily.org/missions/global/profile/nate-and-insa-brewer"
             },
-            label: {
-              text: m.name,
-              font: config.labels.font,
-              fillColor: Cesium.Color.fromCssColorString(config.labels.fillColor),
-              outlineColor: Cesium.Color.fromCssColorString(config.labels.outlineColor),
-              outlineWidth: config.labels.outlineWidth,
-              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              verticalOrigin: Cesium.VerticalOrigin.TOP,
-              pixelOffset: new Cesium.Cartesian2(config.labels.pixelOffset.x, config.labels.pixelOffset.y),
-              scaleByDistance: new Cesium.NearFarScalar(
-                config.labels.scaleByDistance.near,
-                config.labels.scaleByDistance.nearScale,
-                config.labels.scaleByDistance.far,
-                config.labels.scaleByDistance.farScale
-              ),
-              translucencyByDistance: new Cesium.NearFarScalar(
-                config.labels.translucencyByDistance.near,
-                config.labels.translucencyByDistance.nearAlpha,
-                config.labels.translucencyByDistance.far,
-                config.labels.translucencyByDistance.farAlpha
-              )
+            {
+                "name": "The James Project",
+                "lat": 39.7896428394095,
+                "lng": -89.70436802808422,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/the-james-project"
+            },
+            {
+                "name": "Enos Elementary School",
+                "lat": 39.81371275227684,
+                "lng": -89.66123412161984,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/enos-elementary-school"
+            },
+            {
+                "name": "First Step Womens Center",
+                "lat": 39.81614343832645,
+                "lng": -89.64804609100652,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/first-step-women-s-center"
+            },
+            {
+                "name": "Washington Street Mission",
+                "lat": 39.80539890563301,
+                "lng": -89.65046838235627,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/washington-street-mission"
+            },
+            {
+                "name": "St. Johns Breadline",
+                "lat": 39.8060442514894,
+                "lng": -89.650741810007,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/st-john-s-breadline"
+            },
+            {
+                "name": "Contact Ministries",
+                "lat": 39.800041674513665,
+                "lng": -89.64072212591212,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/contact-ministries"
+            },
+            {
+                "name": "Powerlight Fest",
+                "lat": 39.78186784059419,
+                "lng": -89.64999534227154,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/powerlight-fest"
+            },
+            {
+                "name": "Fellowship of Christian Athletes",
+                "lat": 39.72721028580847,
+                "lng": -89.6431716193549,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/fellowship-of-christian-athletes"
+            },
+            {
+                "name": "Refuge Ranch",
+                "lat": 39.6637119935077,
+                "lng": -89.48772737421496,
+                "url": "https://cherryhillsfamily.org/missions/local/profile/refuge-ranch"
+            },
+            {
+                "name": "Matt and Nadia Lohse",
+                "lat": 41.839973864619175,
+                "lng": -87.62502145653507,
+                "url": "https://cherryhillsfamily.org/missions/regional/profile/matt-and-nadia-lohse"
+            },
+            {
+                "name": "TJ & Emily Lemons",
+                "lat": 40.488271457701906,
+                "lng": -88.96748973545199,
+                "url": "https://cherryhillsfamily.org/missions/regional/profile/tj-and-emily-lemons"
+            },
+            {
+                "name": "Bryan & Jonell McKenzie",
+                "lat": 40.62884600140587,
+                "lng": -89.40329365428762,
+                "url": "https://cherryhillsfamily.org/missions/regional/profile/bryan-and-jonell-mckenzie"
+            },
+            {
+                "name": "Bill & Sandi Graf",
+                "lat": 34.53500017176638,
+                "lng": -105.87621306123053,
+                "url": "https://cherryhillsfamily.org/missions/global/profile/bill-and-sandi-graf"
+            },
+            {
+                "name": "Amigos en Cristo",
+                "lat": 31.691964154431243,
+                "lng": -106.4245255578534,
+                "url": "https://cherryhillsfamily.org/missions/global/profile/amigos-en-cristo"
+            },
+            {
+                "name": "Greg & Vicki Syverson",
+                "lat": 20.099457434634093,
+                "lng": -98.7595967600226,
+                "url": "https://cherryhillsfamily.org/missions/global/profile/greg-and-vicki-syverson"
             }
-          });
+        ];
 
-          if (category === 'local') springfieldEntities.push(entity);
-          if (category === 'regional') regionalEntities.push(entity);
+        // Initialize Cesium viewer
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            animation: false,
+            baseLayerPicker: false,
+            fullscreenButton: false,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: false,
+            selectionIndicator: false,
+            timeline: false,
+            navigationHelpButton: false,
+            vrButton: false,
+            scene3DOnly: true,
+            automaticallyTrackDataSourceClocks: false,
+            shadows: true,
+            shouldAnimate: true
         });
 
-        // Update stats
-        if (config.ui.showStats) {
-          document.getElementById('totalMissions').textContent = stats.total;
-          document.getElementById('totalCountries').textContent = stats.countries.size || '3+';
-          document.getElementById('totalContinents').textContent = stats.continents.size;
+        // Configure atmosphere and lighting
+        viewer.scene.globe.enableLighting = true;
+        viewer.scene.globe.showGroundAtmosphere = true;
+        viewer.scene.fog.enabled = false;
+        viewer.scene.skyAtmosphere.show = true;
+
+        // Set the time to current time for accurate day/night
+        viewer.clock.currentTime = Cesium.JulianDate.now();
+        viewer.clock.shouldAnimate = true;
+        viewer.clock.multiplier = 1; // Real-time speed
+
+        // Add moon
+        viewer.scene.moon = new Cesium.Moon();
+
+        // Configure sun lighting
+        viewer.scene.globe.dynamicAtmosphereLighting = true;
+        viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
+
+        // Add night texture with city lights
+        const layers = viewer.scene.imageryLayers;
+        const nightLayer = layers.addImageryProvider(
+            new Cesium.IonImageryProvider({ assetId: 3812 }) // Earth at Night
+        );
+
+        // Make night layer only visible in dark areas
+        nightLayer.dayAlpha = 0.0;
+        nightLayer.nightAlpha = 1.0;
+        nightLayer.brightness = 2.0;
+
+        // Set initial view
+        const initialView = {
+            destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+            orientation: {
+                heading: 0.0,
+                pitch: -Cesium.Math.PI_OVER_TWO,
+                roll: 0.0
+            }
+        };
+
+        viewer.scene.camera.setView(initialView);
+
+        // Create custom pin billboard with actual logo
+        const pinCanvas = document.createElement('canvas');
+        pinCanvas.width = 48;
+        pinCanvas.height = 64;
+        const ctx = pinCanvas.getContext('2d');
+
+        // Function to draw pin with logo
+        function drawPinWithLogo(logoImg) {
+            // Draw pin shape
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(24, 24, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(24, 44);
+            ctx.lineTo(14, 24);
+            ctx.lineTo(34, 24);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw white circle background
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(24, 24, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw logo image
+            if (logoImg) {
+                // Scale and center the logo within the white circle
+                const logoSize = 35; // Size of logo within the circle
+                const logoX = 24 - logoSize / 2;
+                const logoY = 24 - logoSize / 2;
+                ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+            } else {
+                // Fallback to CH text if logo doesn't load
+                ctx.fillStyle = '#4A90E2';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('CH', 24, 24);
+            }
+
+            return pinCanvas.toDataURL();
         }
 
-        // Create grouped markers (without billboards - text only)
-        const localEntity = viewer.entities.add({
-          name: 'Local Missions',
-          position: Cesium.Cartesian3.fromDegrees(
-            config.regions.springfield.center.lng,
-            config.regions.springfield.center.lat,
-            0
-          ),
-          label: {
-            text: `${config.categories.local.icon} ${config.regions.springfield.label} (${springfieldEntities.length})`,
-            font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 3,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            pixelOffset: new Cesium.Cartesian2(0, 0)
-          }
-        });
-
-        const regionalEntity = viewer.entities.add({
-          name: 'Regional Missions',
-          position: Cesium.Cartesian3.fromDegrees(
-            config.regions.regional.center.lng,
-            config.regions.regional.center.lat,
-            0
-          ),
-          label: {
-            text: `${config.categories.regional.icon} ${config.regions.regional.label} (${regionalEntities.length})`,
-            font: `bold ${config.ui.fonts.groupLabelSize} Arial`,
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 3,
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            verticalOrigin: Cesium.VerticalOrigin.CENTER,
-            pixelOffset: new Cesium.Cartesian2(0, 0)
-          }
-        });
-
-        // Update grouping based on camera altitude
-        const updateGrouping = () => {
-          const height = viewer.camera.positionCartographic.height;
-          const grouped = height > config.camera.groupingAltitude;
-          localEntity.show = grouped;
-          regionalEntity.show = grouped;
-          springfieldEntities.forEach(e => e.show = !grouped);
-          regionalEntities.forEach(e => e.show = !grouped);
+        // Load logo and create pins
+        const logoImg = new Image();
+        logoImg.onload = function () {
+            const pinImage = drawPinWithLogo(logoImg);
+            addMissionPins(pinImage);
         };
-        updateGrouping();
-        viewer.camera.changed.addEventListener(updateGrouping);
+        logoImg.onerror = function () {
+            console.warn('Logo failed to load, using fallback');
+            const pinImage = drawPinWithLogo(null);
+            addMissionPins(pinImage);
+        };
+        // Update this path to your actual logo file
+        logoImg.src = 'assets/logo.svg'; // or 'assets/logo.png'
 
-        // Enhanced click handling with info panel
-        let currentHighlight = null;
-        const infoPanel = document.getElementById('infoPanel');
+        // Function to add mission pins
+        function addMissionPins(pinImage) {
+            missions.forEach((mission) => {
+                viewer.entities.add({
+                    name: mission.name,
+                    position: Cesium.Cartesian3.fromDegrees(mission.lng, mission.lat),
+                    billboard: {
+                        image: pinImage,
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        scale: 1.5,
+                        scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5)
+                    },
+                    properties: {
+                        mission: mission
+                    }
+                });
+            });
+        }
 
+        // Handle mouse events
         const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        const infoBox = document.getElementById('missionInfoBox');
+        const missionNameEl = document.getElementById('missionName');
+
+        // Mouse move for hover effect
+        handler.setInputAction(function (movement) {
+            const pickedObject = viewer.scene.pick(movement.endPosition);
+
+            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
+                const mission = pickedObject.id.properties.mission.getValue();
+                missionNameEl.textContent = mission.name;
+
+                infoBox.style.display = 'block';
+                infoBox.style.left = movement.endPosition.x + 15 + 'px';
+                infoBox.style.top = movement.endPosition.y - 30 + 'px';
+
+                viewer.scene.canvas.style.cursor = 'pointer';
+            } else {
+                infoBox.style.display = 'none';
+                viewer.scene.canvas.style.cursor = 'default';
+            }
+        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
         // Click handler
-        handler.setInputAction(click => {
-          const picked = viewer.scene.pick(click.position);
-          if (Cesium.defined(picked) && picked.id) {
-            if (picked.id === regionalEntity) {
-              viewer.camera.flyTo({
-                destination: regionalRectangle,
-                duration: config.camera.flyDuration
-              });
-            } else if (picked.id === localEntity) {
-              viewer.camera.flyTo({
-                destination: springfieldRectangle,
-                duration: config.camera.flyDuration
-              });
-            } else if (picked.id.url) {
-              // Show info panel instead of immediate navigation
-              if (config.ui.showInfoPanel) {
-                document.getElementById('missionName').textContent = picked.id.name;
-                document.getElementById('missionDetails').textContent =
-                  `Click to visit the ${picked.id.category} mission profile page.`;
-                document.getElementById('missionLink').href = picked.id.url;
-                infoPanel.classList.add('visible');
-              } else {
-                window.location.href = picked.id.url;
-              }
+        handler.setInputAction(function (click) {
+            const pickedObject = viewer.scene.pick(click.position);
 
-              // Highlight the selected entity
-              if (currentHighlight) {
-                currentHighlight.billboard.scale = config.categories[currentHighlight.category].pinScale;
-              }
-              picked.id.billboard.scale = config.categories[picked.id.category].pinScale * 1.25;
-              currentHighlight = picked.id;
+            if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
+                const mission = pickedObject.id.properties.mission.getValue();
+                showMissionContent(mission);
             }
-          } else {
-            // Hide info panel when clicking empty space
-            infoPanel.classList.remove('visible');
-            if (currentHighlight) {
-              currentHighlight.billboard.scale = config.categories[currentHighlight.category].pinScale;
-              currentHighlight = null;
-            }
-          }
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-        // Hover effect
-        handler.setInputAction(movement => {
-          const picked = viewer.scene.pick(movement.endPosition);
-          if (Cesium.defined(picked) && picked.id && picked.id.url) {
-            document.body.style.cursor = 'pointer';
-          } else {
-            document.body.style.cursor = 'default';
-          }
-        }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-      })
-      .catch(err => {
-        console.error('Failed to load missions data', err);
-        document.getElementById('loadingIndicator').innerHTML =
-          `<p style="color: #d32f2f;">${config.messages.loadingError}</p>`;
-      });
-  </script>
+        // Home button
+        document.getElementById('home-button').addEventListener('click', () => {
+            viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                orientation: {
+                    heading: 0.0,
+                    pitch: -Cesium.Math.PI_OVER_TWO,
+                    roll: 0.0
+                },
+                duration: 3.0, // 3 second animation
+                easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+            });
+        });
+
+        // Back button
+        document.getElementById('back-button').addEventListener('click', () => {
+            document.getElementById('content-frame').classList.remove('active');
+            resetInactivityTimer();
+        });
+
+        // Show mission content
+        function showMissionContent(mission) {
+            const contentFrame = document.getElementById('content-frame');
+            const contentDisplay = document.getElementById('content-display');
+
+            contentFrame.classList.add('active');
+
+            // Simulate loading content (in real app, this would load local HTML)
+            contentDisplay.innerHTML = `
+                <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+                    <h1 style="color: #333; margin-bottom: 20px;">${mission.name}</h1>
+                    <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+                        This is a placeholder for the missionary information page. In the actual implementation,
+                        this would display the locally stored content scraped from: ${mission.url}
+                    </p>
+                    <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin-top: 30px;">
+                        <h3 style="color: #4A90E2; margin-bottom: 10px;">Location Details</h3>
+                        <p><strong>Latitude:</strong> ${mission.lat}</p>
+                        <p><strong>Longitude:</strong> ${mission.lng}</p>
+                        <p><strong>Source URL:</strong> <a href="${mission.url}" style="color: #4A90E2;">${mission.url}</a></p>
+                    </div>
+                </div>
+            `;
+
+            resetInactivityTimer();
+        }
+
+        // Inactivity timer
+        let inactivityTimer;
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                // Return to home with animation
+                document.getElementById('content-frame').classList.remove('active');
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                    orientation: {
+                        heading: 0.0,
+                        pitch: -Cesium.Math.PI_OVER_TWO,
+                        roll: 0.0
+                    },
+                    duration: 3.0, // 3 second animation
+                    easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                });
+            }, 600000); // 10 minutes
+        }
+
+        // Reset timer on any interaction
+        document.addEventListener('click', resetInactivityTimer);
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('wheel', resetInactivityTimer);
+
+        // Initial timer
+        resetInactivityTimer();
+
+        // Disable double-click zoom
+        viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+        // Set minimum and maximum zoom distances
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10000;
+        viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30000000;
+
+        // Enable smooth camera movement
+        viewer.scene.screenSpaceCameraController.enableTilt = true;
+        viewer.scene.screenSpaceCameraController.enableLook = false;
+    </script>
 </body>
 
 </html>
