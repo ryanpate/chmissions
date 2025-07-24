@@ -743,7 +743,44 @@
 
                 if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
                     const mission = pickedObject.id.properties.mission.getValue();
-                    showMissionContent(mission);
+                    const entity = pickedObject.id;
+
+                    // Set zoom distance based on mission type
+                    let zoomDistance;
+                    switch (mission.type) {
+                        case 'local':
+                            zoomDistance = 50000; // 50km for local
+                            break;
+                        case 'regional':
+                            zoomDistance = 300000; // 300km for regional
+                            break;
+                        case 'global':
+                            zoomDistance = 1000000; // 1000km for global
+                            break;
+                        default:
+                            zoomDistance = 500000; // 500km default
+                    }
+
+                    // Zoom to the pin location
+                    viewer.flyTo(entity, {
+                        duration: 2.0, // 2 second flight
+                        offset: new Cesium.HeadingPitchRange(
+                            0, // heading
+                            -Cesium.Math.PI_OVER_FOUR, // pitch (looking down at 45 degrees)
+                            zoomDistance
+                        )
+                    }).then(function () {
+                        // After zoom completes, wait a moment then show content
+                        setTimeout(function () {
+                            lastViewedPosition = {
+                                position: viewer.camera.position.clone(),
+                                heading: viewer.camera.heading,
+                                pitch: viewer.camera.pitch,
+                                roll: viewer.camera.roll
+                            };
+                            showMissionContent(mission);
+                        }, 500); // 0.5 second pause after zoom
+                    });
                 }
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
@@ -761,12 +798,55 @@
                 });
             });
 
+            // Store the last viewed position
+            let lastViewedPosition = null;
+
             // Back button
             document.getElementById('back-button').addEventListener('click', () => {
                 document.getElementById('content-frame').classList.remove('active');
+
+                // If we have a last viewed position, fly from there to home
+                if (lastViewedPosition) {
+                    // First, quickly set camera to last viewed position
+                    viewer.scene.camera.setView({
+                        destination: lastViewedPosition.position,
+                        orientation: {
+                            heading: lastViewedPosition.heading,
+                            pitch: lastViewedPosition.pitch,
+                            roll: lastViewedPosition.roll
+                        }
+                    });
+
+                    // Then animate to home
+                    setTimeout(() => {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                            orientation: {
+                                heading: 0.0,
+                                pitch: -Cesium.Math.PI_OVER_TWO,
+                                roll: 0.0
+                            },
+                            duration: 3.0, // 3 second animation
+                            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                        });
+                    }, 100); // Small delay to ensure camera position is set
+                } else {
+                    // Fallback to regular home view if no position stored
+                    viewer.camera.flyTo({
+                        destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                        orientation: {
+                            heading: 0.0,
+                            pitch: -Cesium.Math.PI_OVER_TWO,
+                            roll: 0.0
+                        },
+                        duration: 3.0,
+                        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                    });
+                }
+
                 resetInactivityTimer();
             });
-
+            
             // Show mission content
             async function showMissionContent(mission) {
                 const contentFrame = document.getElementById('content-frame');
