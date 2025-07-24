@@ -21,12 +21,37 @@ async function scrapeMissionPages() {
             // Wait for main content to load
             await page.waitForSelector('main', { timeout: 10000 }).catch(() => {});
             
-            // Remove navigation and footer elements for cleaner display
+            // Remove navigation, footer, and process links
             await page.evaluate(() => {
+                // Remove unwanted elements
                 const elementsToRemove = ['header', 'nav', 'footer', '.navigation', '.menu'];
                 elementsToRemove.forEach(selector => {
                     const elements = document.querySelectorAll(selector);
                     elements.forEach(el => el.remove());
+                });
+                
+                // Find all links
+                const links = document.querySelectorAll('a');
+                links.forEach(link => {
+                    // Check if link text contains "back" (case insensitive)
+                    const linkText = link.textContent.toLowerCase().trim();
+                    if (linkText === 'back' || linkText === 'go back' || linkText === '← back' || linkText === '< back' || linkText.includes('back to')) {
+                        // Remove the entire link element
+                        link.remove();
+                    } else {
+                        // For all other links, convert to plain text
+                        const textNode = document.createTextNode(link.textContent);
+                        link.parentNode.replaceChild(textNode, link);
+                    }
+                });
+                
+                // Also remove any buttons that might say "back"
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    const buttonText = button.textContent.toLowerCase().trim();
+                    if (buttonText.includes('back')) {
+                        button.remove();
+                    }
                 });
             });
             
