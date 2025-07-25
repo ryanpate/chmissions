@@ -899,6 +899,26 @@
                 }, 600000); // 10 minutes
             }
 
+            // Screensaver timer (30 minutes)
+            let screensaverTimer;
+
+            function resetScreensaverTimer() {
+                clearTimeout(screensaverTimer);
+                screensaverTimer = setTimeout(() => {
+                    // Navigate to screensaver
+                    window.location.href = 'screensaver.html';
+                }, 1800000); // 30 minutes
+            }
+
+            // Add screensaver reset to all interactions
+            document.addEventListener('click', resetScreensaverTimer);
+            document.addEventListener('mousemove', resetScreensaverTimer);
+            document.addEventListener('touchstart', resetScreensaverTimer);
+            document.addEventListener('wheel', resetScreensaverTimer);
+
+            // Initialize screensaver timer
+            resetScreensaverTimer();
+            
             // Reset timer on any interaction
             document.addEventListener('click', resetInactivityTimer);
             document.addEventListener('mousemove', resetInactivityTimer);

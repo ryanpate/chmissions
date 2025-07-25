@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Hills Missions - Touch to Start</title>
+    <style>
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Bold.woff2') format('woff2'),
+                 url('assets/fonts/BrandonGrotesque-Bold.woff') format('woff');
+            font-weight: 600;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            cursor: none;
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Brandon Grotesque', sans-serif;
+        }
+        
+        .logo-container {
+            animation: float 6s ease-in-out infinite;
+            margin-bottom: 50px;
+        }
+        
+        .logo {
+            width: 300px;
+            height: auto;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
+        }
+        
+        .touch-text {
+            font-size: 36px;
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 2px;
+            animation: pulse 2s ease-in-out infinite;
+            text-shadow: 0 4px 20px rgba(74, 144, 226, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: #4A90E2;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        .bg-animation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(74, 144, 226, 0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body onclick="window.location.href='index.html'">
+    <div class="bg-animation"></div>
+    <div class="logo-container">
+        <img src="assets/logo.svg" alt="Cherry Hills" class="logo">
+    </div>
+    <h1 class="touch-text">TOUCH TO START</h1>
+    <p class="subtitle">Explore Our Global Missions</p>
+</body>
+</html>
