@@ -209,36 +209,6 @@
             display: none !important;
         }
 
-        /* Custom info box */
-        .mission-info-box {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 300px;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .mission-info-box h3 {
-            font-family: 'Brandon Grotesque', sans-serif;
-            color: #4A90E2;
-            margin-bottom: 8px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .mission-info-box p {
-            font-family: 'Brandon Grotesque', sans-serif;
-            color: #ddd;
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 400;
-        }
-
         /* Mission Legend */
         #mission-legend {
             position: absolute;
@@ -353,11 +323,6 @@
         <div id="content-display">
             <div class="loading">Loading mission information...</div>
         </div>
-    </div>
-
-    <div class="mission-info-box" id="missionInfoBox">
-        <h3 id="missionName"></h3>
-        <p>Click to view details</p>
     </div>
 
     <script>
@@ -719,23 +684,23 @@
             const missionNameEl = document.getElementById('missionName');
 
             // Mouse move for hover effect
-            handler.setInputAction(function (movement) {
-                const pickedObject = viewer.scene.pick(movement.endPosition);
+            // handler.setInputAction(function (movement) {
+            //    const pickedObject = viewer.scene.pick(movement.endPosition);
 
-                if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
-                    const mission = pickedObject.id.properties.mission.getValue();
-                    missionNameEl.textContent = mission.name;
+            //    if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
+            //        const mission = pickedObject.id.properties.mission.getValue();
+            //        missionNameEl.textContent = mission.name;
 
-                    infoBox.style.display = 'block';
-                    infoBox.style.left = movement.endPosition.x + 15 + 'px';
-                    infoBox.style.top = movement.endPosition.y - 30 + 'px';
+            //        infoBox.style.display = 'block';
+            //        infoBox.style.left = movement.endPosition.x + 15 + 'px';
+            //        infoBox.style.top = movement.endPosition.y - 30 + 'px';
 
-                    viewer.scene.canvas.style.cursor = 'pointer';
-                } else {
-                    infoBox.style.display = 'none';
-                    viewer.scene.canvas.style.cursor = 'default';
-                }
-            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            //        viewer.scene.canvas.style.cursor = 'pointer';
+            //    } else {
+            //        infoBox.style.display = 'none';
+            //        viewer.scene.canvas.style.cursor = 'default';
+            //    }
+            //}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
             // Click handler
             handler.setInputAction(function (click) {
