@@ -30,22 +30,49 @@
             font-family: 'Brandon Grotesque', sans-serif;
         }
         
-        .logo-container {
-            animation: float 6s ease-in-out infinite;
-            margin-bottom: 50px;
-        }
-        
-        .logo {
-            width: 300px;
-            height: auto;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.3));
-        }
-        
-        .touch-text {
-            font-size: 36px;
-            color: #fff;
-            font-weight: 600;
-            letter-spacing: 2px;
+.logo-container {
+    animation: float 6s ease-in-out infinite;
+    margin-bottom: 50px;
+}
+
+.logo-circle {
+    width: 250px;
+    height: 250px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.logo {
+    width: 70%;
+    height: auto;
+    max-width: 175px;
+    max-height: 175px;
+    object-fit: contain;
+}
+
+.logo-circle::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #4A90E2, #6BB6FF);
+    border-radius: 50%;
+    z-index: -1;
+}
+
+.touch-text {
+    font-size: 36px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 2px;
             animation: pulse 2s ease-in-out infinite;
             text-shadow: 0 4px 20px rgba(74, 144, 226, 0.5);
         }
@@ -93,9 +120,10 @@
 <body onclick="window.location.href='index.html'">
     <div class="bg-animation"></div>
     <div class="logo-container">
-        <img src="assets/logo.svg" alt="Cherry Hills" class="logo">
-    </div>
-    <h1 class="touch-text">TOUCH TO START</h1>
+        <div class="logo-circle">
+            <img src="assets/logo.svg" alt="Cherry Hills" class="logo">
+        </div>
+    </div>    <h1 class="touch-text">TOUCH TO START</h1>
     <p class="subtitle">Explore Our Global Missions</p>
 </body>
 </html>
