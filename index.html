@@ -555,10 +555,13 @@
             document.getElementById('global-count').textContent = `(${missionCounts.global})`;
             // Create custom pin billboard with actual logo
             const pinCanvas = document.createElement('canvas');
-            pinCanvas.width = 48;
-            pinCanvas.height = 64;
+            pinCanvas.width = 192;
+            pinCanvas.height = 256;
             const ctx = pinCanvas.getContext('2d');
-
+            
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
             // Function to draw pin with logo
             function drawPinWithLogo(logoImg) {
                 // Draw pin shape
