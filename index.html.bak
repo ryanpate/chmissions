@@ -120,6 +120,80 @@
             box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
         }
 
+        /* Featured Mission Banner */
+        #featured-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            padding: 12px 30px;
+            border-radius: 30px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+            animation: slideDown 0.5s ease-out;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #featured-banner:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.6);
+        }
+
+        #featured-banner.active {
+            display: block;
+        }
+
+        #featured-banner h3 {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #featured-banner p {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Pulsing animation for featured pin */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
         #content-frame {
             position: absolute;
             top: 0;
@@ -278,6 +352,12 @@
 <body>
     <div id="cesiumContainer"></div>
 
+    <!-- Featured Mission Banner -->
+    <div id="featured-banner">
+        <h3>Featured Mission</h3>
+        <p id="featured-mission-name"></p>
+    </div>
+
     <div id="instructions">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40'%3E%3Ctext x='10' y='40' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%234A90E2'%3ECH Missions%3C/text%3E%3C/svg%3E"
             alt="Logo" class="logo">
@@ -331,6 +411,21 @@
 
         // Load mission data from JSON file
         let missions = [];
+        let featuredMission = null;
+        let featuredEntity = null;
+
+        // Load featured mission from localStorage
+        function loadFeaturedMission() {
+            const stored = localStorage.getItem('featuredMission');
+            if (stored) {
+                featuredMission = JSON.parse(stored);
+                // Display featured mission banner
+                if (featuredMission) {
+                    document.getElementById('featured-mission-name').textContent = featuredMission.name;
+                    document.getElementById('featured-banner').classList.add('active');
+                }
+            }
+        }
 
         async function loadMissions() {
             try {
@@ -346,22 +441,22 @@
                 console.log('Successfully loaded missions:', missions.length);
                 console.log('First mission data:', missions[0]);
 
-                // Check if localFile properties exist
-                const hasLocalFiles = missions.some(m => m.localFile);
-                console.log('Missions have localFile properties:', hasLocalFiles);
+                // Load featured mission
+                loadFeaturedMission();
 
                 // Continue with initialization after missions are loaded
                 initializeGlobe();
             } catch (error) {
                 console.error('Error loading missions.json:', error);
-                console.warn('Using fallback hardcoded data - this will not have localFile properties!');
+                console.warn('Using fallback hardcoded data');
 
-                // Fallback to hardcoded data if JSON fails
+                // Fallback data (abbreviated for space)
                 missions = [
                     {
                         "name": "Nate and Insa Brewer",
                         "lat": 48.210033,
                         "lng": 16.363449,
+                        "type": "global",
                         "url": "https://www.cherryhillsfamily.org/missions/global/profile/nate-and-insa-brewer",
                         "localFile": "nate-and-insa-brewer.html"
                     },
@@ -369,108 +464,12 @@
                         "name": "The James Project",
                         "lat": 39.7896428394095,
                         "lng": -89.70436802808422,
+                        "type": "local",
                         "url": "https://cherryhillsfamily.org/missions/local/profile/the-james-project",
                         "localFile": "the-james-project.html"
-                    },
-                    {
-                        "name": "Enos Elementary School",
-                        "lat": 39.81371275227684,
-                        "lng": -89.66123412161984,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/enos-elementary-school",
-                        "localFile": "enos-elementary-school.html"
-                    },
-                    {
-                        "name": "First Step Womens Center",
-                        "lat": 39.81614343832645,
-                        "lng": -89.64804609100652,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/first-step-women-s-center",
-                        "localFile": "first-step-womens-center.html"
-                    },
-                    {
-                        "name": "Washington Street Mission",
-                        "lat": 39.80539890563301,
-                        "lng": -89.65046838235627,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/washington-street-mission",
-                        "localFile": "washington-street-mission.html"
-                    },
-                    {
-                        "name": "St. Johns Breadline",
-                        "lat": 39.8060442514894,
-                        "lng": -89.650741810007,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/st-john-s-breadline",
-                        "localFile": "st-johns-breadline.html"
-                    },
-                    {
-                        "name": "Contact Ministries",
-                        "lat": 39.800041674513665,
-                        "lng": -89.64072212591212,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/contact-ministries",
-                        "localFile": "contact-ministries.html"
-                    },
-                    {
-                        "name": "Powerlight Fest",
-                        "lat": 39.78186784059419,
-                        "lng": -89.64999534227154,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/powerlight-fest",
-                        "localFile": "powerlight-fest.html"
-                    },
-                    {
-                        "name": "Fellowship of Christian Athletes",
-                        "lat": 39.72721028580847,
-                        "lng": -89.6431716193549,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/fellowship-of-christian-athletes",
-                        "localFile": "fellowship-of-christian-athletes.html"
-                    },
-                    {
-                        "name": "Refuge Ranch",
-                        "lat": 39.6637119935077,
-                        "lng": -89.48772737421496,
-                        "url": "https://cherryhillsfamily.org/missions/local/profile/refuge-ranch",
-                        "localFile": "refuge-ranch.html"
-                    },
-                    {
-                        "name": "Matt and Nadia Lohse",
-                        "lat": 41.839973864619175,
-                        "lng": -87.62502145653507,
-                        "url": "https://cherryhillsfamily.org/missions/regional/profile/matt-and-nadia-lohse",
-                        "localFile": "matt-and-nadia-lohse.html"
-                    },
-                    {
-                        "name": "TJ & Emily Lemons",
-                        "lat": 40.488271457701906,
-                        "lng": -88.96748973545199,
-                        "url": "https://cherryhillsfamily.org/missions/regional/profile/tj-and-emily-lemons",
-                        "localFile": "tj-emily-lemons.html"
-                    },
-                    {
-                        "name": "Bryan & Jonell McKenzie",
-                        "lat": 40.62884600140587,
-                        "lng": -89.40329365428762,
-                        "url": "https://cherryhillsfamily.org/missions/regional/profile/bryan-and-jonell-mckenzie",
-                        "localFile": "bryan-jonell-mckenzie.html"
-                    },
-                    {
-                        "name": "Bill & Sandi Graf",
-                        "lat": 34.53500017176638,
-                        "lng": -105.87621306123053,
-                        "url": "https://cherryhillsfamily.org/missions/global/profile/bill-and-sandi-graf",
-                        "localFile": "bill-sandi-graf.html"
-                    },
-                    {
-                        "name": "Amigos en Cristo",
-                        "lat": 31.691964154431243,
-                        "lng": -106.4245255578534,
-                        "url": "https://cherryhillsfamily.org/missions/global/profile/amigos-en-cristo",
-                        "localFile": "amigos-en-cristo.html"
-                    },
-                    {
-                        "name": "Greg & Vicki Syverson",
-                        "lat": 20.099457434634093,
-                        "lng": -98.7595967600226,
-                        "url": "https://cherryhillsfamily.org/missions/global/profile/greg-and-vicki-syverson",
-                        "localFile": "greg-vicki-syverson.html"
                     }
                 ];
+                loadFeaturedMission();
                 initializeGlobe();
             }
         }
@@ -525,18 +524,47 @@
             nightLayer.nightAlpha = 1.0;
             nightLayer.brightness = 2.0;
 
-            // Set initial view
-            const initialView = {
-                destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
-                orientation: {
-                    heading: 0.0,
-                    pitch: -Cesium.Math.PI_OVER_TWO,
-                    roll: 0.0
+            // Determine initial view based on featured mission
+            let initialView;
+            if (featuredMission) {
+                // Find the featured mission in the missions array
+                const featured = missions.find(m => m.name === featuredMission.name);
+                if (featured) {
+                    // Use a global view that centers the featured location in the screen
+                    initialView = {
+                        destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
+                        // No offset - pin will be centered
+                        orientation: {
+                            heading: 0.0,
+                            pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down for global view
+                            roll: 0.0
+                        }
+                    };
+                } else {
+                    // Fallback to default view if featured mission not found
+                    initialView = {
+                        destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                        orientation: {
+                            heading: 0.0,
+                            pitch: -Cesium.Math.PI_OVER_TWO,
+                            roll: 0.0
+                        }
+                    };
                 }
-            };
+            } else {
+                // Default view if no featured mission
+                initialView = {
+                    destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                    orientation: {
+                        heading: 0.0,
+                        pitch: -Cesium.Math.PI_OVER_TWO,
+                        roll: 0.0
+                    }
+                };
+            }
 
             viewer.scene.camera.setView(initialView);
-            
+
             // Count missions by type and update legend
             const missionCounts = {
                 local: 0,
@@ -553,19 +581,22 @@
             document.getElementById('local-count').textContent = `(${missionCounts.local})`;
             document.getElementById('regional-count').textContent = `(${missionCounts.regional})`;
             document.getElementById('global-count').textContent = `(${missionCounts.global})`;
+
             // Create custom pin billboard with actual logo
             const pinCanvas = document.createElement('canvas');
             pinCanvas.width = 48;
             pinCanvas.height = 64;
             const ctx = pinCanvas.getContext('2d');
-            
+
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
             // Function to draw pin with logo
-            function drawPinWithLogo(logoImg) {
+            function drawPinWithLogo(logoImg, isFeatured = false) {
+                ctx.clearRect(0, 0, pinCanvas.width, pinCanvas.height);
+
                 // Draw pin shape
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = isFeatured ? '#FFD700' : 'white'; // Gold for featured, white for normal
                 ctx.beginPath();
                 ctx.arc(24, 24, 20, 0, Math.PI * 2);
                 ctx.fill();
@@ -584,8 +615,7 @@
 
                 // Draw logo image
                 if (logoImg) {
-                    // Scale and center the logo within the white circle
-                    const logoSize = 35; // Size of logo within the circle
+                    const logoSize = 35;
                     const logoX = 24 - logoSize / 2;
                     const logoY = 24 - logoSize / 2;
                     ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
@@ -658,52 +688,53 @@
             // Function to add mission pins
             function addMissionPins() {
                 missions.forEach((mission) => {
-                    // Determine which logo to use based on mission type
-                    const missionType = mission.type || 'local'; // Default to local if no type specified
+                    const missionType = mission.type || 'local';
                     const logoToUse = logos[missionType];
 
-                    // Create pin image with appropriate logo
-                    const pinImage = drawPinWithLogo(logoToUse);
+                    // Check if this is the featured mission
+                    const isFeatured = featuredMission && featuredMission.name === mission.name;
 
-                    viewer.entities.add({
+                    // Create pin image
+                    const pinImage = drawPinWithLogo(logoToUse, isFeatured);
+
+                    const entity = viewer.entities.add({
                         name: mission.name,
                         position: Cesium.Cartesian3.fromDegrees(mission.lng, mission.lat),
                         billboard: {
                             image: pinImage,
                             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                            scale: 1.5,
-                            scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5)
+                            scale: isFeatured ? 2.0 : 1.5, // Larger scale for featured
+                            scaleByDistance: new Cesium.NearFarScalar(1.5e2, isFeatured ? 1.2 : 1.0, 1.5e7, 0.5)
                         },
                         properties: {
-                            mission: mission
+                            mission: mission,
+                            isFeatured: isFeatured
                         }
                     });
+
+                    // Store featured entity reference
+                    if (isFeatured) {
+                        featuredEntity = entity;
+
+                        // Add slower pulsing animation to featured pin
+                        let pulseScale = 1.0;
+                        let pulseDirection = 1;
+
+                        viewer.scene.preRender.addEventListener(function () {
+                            if (featuredEntity && featuredEntity.billboard) {
+                                pulseScale += 0.002 * pulseDirection; // Reduced from 0.015 to 0.005 for slower animation
+                                if (pulseScale > 1.2 || pulseScale < 1.0) { // Reduced max scale from 1.3 to 1.2 for subtler effect
+                                    pulseDirection *= -1;
+                                }
+                                featuredEntity.billboard.scale = pulseScale * 2.0;
+                            }
+                        });
+                    }
                 });
             }
 
             // Handle mouse events
             const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-            const infoBox = document.getElementById('missionInfoBox');
-            const missionNameEl = document.getElementById('missionName');
-
-            // Mouse move for hover effect
-            // handler.setInputAction(function (movement) {
-            //    const pickedObject = viewer.scene.pick(movement.endPosition);
-
-            //    if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
-            //        const mission = pickedObject.id.properties.mission.getValue();
-            //        missionNameEl.textContent = mission.name;
-
-            //        infoBox.style.display = 'block';
-            //        infoBox.style.left = movement.endPosition.x + 15 + 'px';
-            //        infoBox.style.top = movement.endPosition.y - 30 + 'px';
-
-            //        viewer.scene.canvas.style.cursor = 'pointer';
-            //    } else {
-            //        infoBox.style.display = 'none';
-            //        viewer.scene.canvas.style.cursor = 'default';
-            //    }
-            //}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
             // Click handler
             handler.setInputAction(function (click) {
@@ -731,14 +762,13 @@
 
                     // Zoom to the pin location
                     viewer.flyTo(entity, {
-                        duration: 2.0, // 2 second flight
+                        duration: 2.0,
                         offset: new Cesium.HeadingPitchRange(
-                            0, // heading
-                            -Cesium.Math.PI_OVER_FOUR, // pitch (looking down at 45 degrees)
+                            0,
+                            -Cesium.Math.PI_OVER_FOUR,
                             zoomDistance
                         )
                     }).then(function () {
-                        // After zoom completes, wait a moment then show content
                         setTimeout(function () {
                             lastViewedPosition = {
                                 position: viewer.camera.position.clone(),
@@ -747,59 +777,30 @@
                                 roll: viewer.camera.roll
                             };
                             showMissionContent(mission);
-                        }, 500); // 0.5 second pause after zoom
+                        }, 500);
                     });
                 }
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-            // Home button
+            // Home button - updated to respect featured mission
             document.getElementById('home-button').addEventListener('click', () => {
-                viewer.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
-                    orientation: {
-                        heading: 0.0,
-                        pitch: -Cesium.Math.PI_OVER_TWO,
-                        roll: 0.0
-                    },
-                    duration: 3.0, // 3 second animation
-                    easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-                });
-            });
-
-            // Store the last viewed position
-            let lastViewedPosition = null;
-
-            // Back button
-            document.getElementById('back-button').addEventListener('click', () => {
-                document.getElementById('content-frame').classList.remove('active');
-
-                // If we have a last viewed position, fly from there to home
-                if (lastViewedPosition) {
-                    // First, quickly set camera to last viewed position
-                    viewer.scene.camera.setView({
-                        destination: lastViewedPosition.position,
-                        orientation: {
-                            heading: lastViewedPosition.heading,
-                            pitch: lastViewedPosition.pitch,
-                            roll: lastViewedPosition.roll
-                        }
-                    });
-
-                    // Then animate to home
-                    setTimeout(() => {
+                if (featuredMission) {
+                    // If there's a featured mission, go to global view centered on it
+                    const featured = missions.find(m => m.name === featuredMission.name);
+                    if (featured) {
                         viewer.camera.flyTo({
-                            destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                            destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
                             orientation: {
                                 heading: 0.0,
-                                pitch: -Cesium.Math.PI_OVER_TWO,
+                                pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down
                                 roll: 0.0
                             },
-                            duration: 3.0, // 3 second animation
+                            duration: 3.0,
                             easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
                         });
-                    }, 100); // Small delay to ensure camera position is set
+                    }
                 } else {
-                    // Fallback to regular home view if no position stored
+                    // Default home view
                     viewer.camera.flyTo({
                         destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
                         orientation: {
@@ -811,10 +812,49 @@
                         easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
                     });
                 }
+            });
+
+            // Store the last viewed position
+            let lastViewedPosition = null;
+
+            // Back button - updated to return to featured or home
+            document.getElementById('back-button').addEventListener('click', () => {
+                document.getElementById('content-frame').classList.remove('active');
+
+                // Determine where to return to
+                let targetView;
+                if (featuredMission) {
+                    const featured = missions.find(m => m.name === featuredMission.name);
+                    if (featured) {
+                        targetView = {
+                            destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
+                            orientation: {
+                                heading: 0.0,
+                                pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down
+                                roll: 0.0
+                            }
+                        };
+                    }
+                } else {
+                    targetView = {
+                        destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                        orientation: {
+                            heading: 0.0,
+                            pitch: -Cesium.Math.PI_OVER_TWO,
+                            roll: 0.0
+                        }
+                    };
+                }
+
+                viewer.camera.flyTo({
+                    ...targetView,
+                    duration: 3.0,
+                    easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                });
 
                 resetInactivityTimer();
             });
-            
+
             // Show mission content
             async function showMissionContent(mission) {
                 const contentFrame = document.getElementById('content-frame');
@@ -823,47 +863,104 @@
                 contentFrame.classList.add('active');
 
                 try {
-                    // Load the local HTML file
                     const response = await fetch(`pages/${mission.localFile}`);
                     const html = await response.text();
 
-                    // Create an iframe to isolate styles
                     contentDisplay.innerHTML = `
-            <iframe 
-                srcdoc="${html.replace(/"/g, '&quot;')}" 
-                style="width: 100%; height: 100%; border: none; background: white;"
-                sandbox="allow-same-origin"
-            ></iframe>
-        `;
+                        <iframe 
+                            srcdoc="${html.replace(/"/g, '&quot;')}" 
+                            style="width: 100%; height: 100%; border: none; background: white;"
+                            sandbox="allow-same-origin"
+                        ></iframe>
+                    `;
                 } catch (error) {
                     contentDisplay.innerHTML = `
-            <div style="padding: 40px; text-align: center;">
-                <h2>Error Loading Content</h2>
-                <p>Unable to load mission information for ${mission.name}</p>
-            </div>
-        `;
+                        <div style="padding: 40px; text-align: center;">
+                            <h2>Error Loading Content</h2>
+                            <p>Unable to load mission information for ${mission.name}</p>
+                        </div>
+                    `;
                 }
 
                 resetInactivityTimer();
             }
+
+            // Add click handler for featured mission banner
+            if (featuredMission) {
+                document.getElementById('featured-banner').addEventListener('click', () => {
+                    const featured = missions.find(m => m.name === featuredMission.name);
+                    if (featured) {
+                        // Find the entity for the featured mission
+                        const entities = viewer.entities.values;
+                        const featuredEntityToClick = entities.find(entity =>
+                            entity.properties &&
+                            entity.properties.mission &&
+                            entity.properties.mission.getValue().name === featured.name
+                        );
+
+                        if (featuredEntityToClick) {
+                            // Store the last viewed position
+                            lastViewedPosition = {
+                                position: viewer.camera.position.clone(),
+                                heading: viewer.camera.heading,
+                                pitch: viewer.camera.pitch,
+                                roll: viewer.camera.roll
+                            };
+
+                            // Zoom to the featured mission
+                            viewer.flyTo(featuredEntityToClick, {
+                                duration: 2.0,
+                                offset: new Cesium.HeadingPitchRange(
+                                    0,
+                                    -Cesium.Math.PI_OVER_FOUR,
+                                    featured.type === 'local' ? 50000 :
+                                        featured.type === 'regional' ? 300000 : 1000000
+                                )
+                            }).then(function () {
+                                setTimeout(function () {
+                                    showMissionContent(featured);
+                                }, 500);
+                            });
+                        }
+                    }
+                });
+            }
+
             // Inactivity timer
             let inactivityTimer;
 
             function resetInactivityTimer() {
                 clearTimeout(inactivityTimer);
                 inactivityTimer = setTimeout(() => {
-                    // Return to home with animation
+                    // Return to featured mission or home
                     document.getElementById('content-frame').classList.remove('active');
-                    viewer.camera.flyTo({
-                        destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
-                        orientation: {
-                            heading: 0.0,
-                            pitch: -Cesium.Math.PI_OVER_TWO,
-                            roll: 0.0
-                        },
-                        duration: 3.0, // 3 second animation
-                        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-                    });
+
+                    if (featuredMission) {
+                        const featured = missions.find(m => m.name === featuredMission.name);
+                        if (featured) {
+                            viewer.camera.flyTo({
+                                destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
+                                orientation: {
+                                    heading: 0.0,
+                                    pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down
+                                    roll: 0.0
+                                },
+                                duration: 3.0,
+                                easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                            });
+                        }
+                    } else {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
+                            orientation: {
+                                heading: 0.0,
+                                pitch: -Cesium.Math.PI_OVER_TWO,
+                                roll: 0.0
+                            },
+                            duration: 3.0,
+                            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                        });
+                    }
                 }, 600000); // 10 minutes
             }
 
@@ -873,7 +970,6 @@
             function resetScreensaverTimer() {
                 clearTimeout(screensaverTimer);
                 screensaverTimer = setTimeout(() => {
-                    // Navigate to screensaver
                     window.location.href = 'screensaver.html';
                 }, 1800000); // 30 minutes
             }
@@ -886,7 +982,7 @@
 
             // Initialize screensaver timer
             resetScreensaverTimer();
-            
+
             // Reset timer on any interaction
             document.addEventListener('click', resetInactivityTimer);
             document.addEventListener('mousemove', resetInactivityTimer);

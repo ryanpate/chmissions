@@ -30,22 +30,21 @@
             font-family: 'Brandon Grotesque', sans-serif;
         }
         
-        .logo-container {
-            animation: float 6s ease-in-out infinite;
-            margin-bottom: 50px;
-        }
+.logo-container {
+    animation: float 6s ease-in-out infinite;
+    margin-bottom: 50px;
+}
 
-        .logo {
-            width: 350px;
-            height: 350px;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
-        }
-        
-        .touch-text {
-            font-size: 36px;
-            color: #fff;
-            font-weight: 600;
-            letter-spacing: 2px;
+.logo {
+    width: 350px;
+    height: 350px;
+    filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+}
+.touch-text {
+    font-size: 36px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 2px;
             animation: pulse 2s ease-in-out infinite;
             text-shadow: 0 4px 20px rgba(74, 144, 226, 0.5);
         }
@@ -89,54 +88,13 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-    <script>
-        // Auto-refresh functionality
-        function setupAutoRefresh() {
-            // Check if we have a stored refresh timestamp
-            const lastRefresh = localStorage.getItem('lastRefreshTime');
-            const now = Date.now();
-            const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
-            
-            if (!lastRefresh) {
-                // First time load, store the current time
-                localStorage.setItem('lastRefreshTime', now.toString());
-            } else {
-                const timeSinceRefresh = now - parseInt(lastRefresh);
-                
-                // If it's been more than 12 hours, refresh the page
-                if (timeSinceRefresh >= twelveHours) {
-                    localStorage.setItem('lastRefreshTime', now.toString());
-                    window.location.reload(true); // Force reload from server
-                    return; // Stop execution since page is reloading
-                }
-                
-                // Calculate time until next refresh
-                const timeUntilRefresh = twelveHours - timeSinceRefresh;
-                
-                // Set timeout for the remaining time
-                setTimeout(() => {
-                    localStorage.setItem('lastRefreshTime', Date.now().toString());
-                    window.location.reload(true);
-                }, timeUntilRefresh);
-            }
-            
-            // Also set a recurring 12-hour interval as a backup
-            setInterval(() => {
-                localStorage.setItem('lastRefreshTime', Date.now().toString());
-                window.location.reload(true);
-            }, twelveHours);
-        }
-        
-        // Setup auto-refresh when page loads
-        window.addEventListener('load', setupAutoRefresh);
-    </script>
 </head>
 <body onclick="window.location.href='index.html'">
     <div class="bg-animation"></div>
     <div class="logo-container">
         <img src="assets/logo.png" alt="Cherry Hills" class="logo" onerror="this.style.border='2px solid red'">
     </div>
-    <h1 class="touch-text">TOUCH TO START</h1>
-    <p class="subtitle">Explore Our Global Missions</p>
+<h1 class="touch-text">TOUCH TO START</h1>
+<p class="subtitle">Explore Our Global Missions</p>
 </body>
 </html>

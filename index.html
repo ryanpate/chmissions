@@ -1003,6 +1003,46 @@
             viewer.scene.screenSpaceCameraController.enableLook = false;
         }
 
+        // Auto-refresh functionality
+        function setupAutoRefresh() {
+            // Check if we have a stored refresh timestamp
+            const lastRefresh = localStorage.getItem('lastRefreshTime');
+            const now = Date.now();
+            const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+            
+            if (!lastRefresh) {
+                // First time load, store the current time
+                localStorage.setItem('lastRefreshTime', now.toString());
+            } else {
+                const timeSinceRefresh = now - parseInt(lastRefresh);
+                
+                // If it's been more than 12 hours, refresh the page
+                if (timeSinceRefresh >= twelveHours) {
+                    localStorage.setItem('lastRefreshTime', now.toString());
+                    window.location.reload(true); // Force reload from server
+                    return; // Stop execution since page is reloading
+                }
+                
+                // Calculate time until next refresh
+                const timeUntilRefresh = twelveHours - timeSinceRefresh;
+                
+                // Set timeout for the remaining time
+                setTimeout(() => {
+                    localStorage.setItem('lastRefreshTime', Date.now().toString());
+                    window.location.reload(true);
+                }, timeUntilRefresh);
+            }
+            
+            // Also set a recurring 12-hour interval as a backup
+            setInterval(() => {
+                localStorage.setItem('lastRefreshTime', Date.now().toString());
+                window.location.reload(true);
+            }, twelveHours);
+        }
+        
+        // Setup auto-refresh
+        setupAutoRefresh();
+        
         // Start loading missions when page loads
         loadMissions();
     </script>
