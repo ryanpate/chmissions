@@ -1088,6 +1088,50 @@
 
             // Function to add mission pins
             function addMissionPins() {
+                // Springfield, IL - Cherry Hills Church home location
+                const springfieldLat = 39.7817;
+                const springfieldLng = -89.6501;
+
+                // Color palette for connection lines by mission type
+                const lineColors = {
+                    local: Cesium.Color.fromCssColorString('#4A90E2').withAlpha(0.4),
+                    regional: Cesium.Color.fromCssColorString('#9B59B6').withAlpha(0.4),
+                    global: Cesium.Color.fromCssColorString('#E74C3C').withAlpha(0.35)
+                };
+
+                // Add connection lines first (so they appear behind pins)
+                missions.forEach((mission) => {
+                    const missionType = mission.type || 'local';
+
+                    // Skip connection line for very close local missions (within ~10km)
+                    const distance = Math.sqrt(
+                        Math.pow(mission.lat - springfieldLat, 2) +
+                        Math.pow(mission.lng - springfieldLng, 2)
+                    );
+                    if (missionType === 'local' && distance < 0.1) return;
+
+                    // Create arc points for curved line
+                    const lineColor = lineColors[missionType];
+
+                    viewer.entities.add({
+                        name: `Connection to ${mission.name}`,
+                        polyline: {
+                            positions: Cesium.Cartesian3.fromDegreesArray([
+                                springfieldLng, springfieldLat,
+                                mission.lng, mission.lat
+                            ]),
+                            width: missionType === 'global' ? 2.5 : 2,
+                            material: new Cesium.PolylineGlowMaterialProperty({
+                                glowPower: 0.2,
+                                color: lineColor
+                            }),
+                            arcType: Cesium.ArcType.GEODESIC,
+                            granularity: Cesium.Math.toRadians(1)
+                        }
+                    });
+                });
+
+                // Now add mission pins on top
                 missions.forEach((mission) => {
                     const missionType = mission.type || 'local';
                     const logoToUse = logos[missionType];
