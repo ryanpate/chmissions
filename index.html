@@ -268,6 +268,50 @@
             margin-top: 10px;
         }
 
+        /* QR Code Section */
+        #qr-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+
+        #qr-code-container {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        #qr-code-img {
+            width: 100px;
+            height: 100px;
+            display: block;
+        }
+
+        #qr-text {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #qr-text .qr-label {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #qr-text .qr-hint {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 16px;
+            color: #666;
+        }
+
         /* Back button fixed at bottom of content panel */
         #back-button {
             background: #4A90E2;
@@ -800,6 +844,15 @@
             <div class="mission-location" id="content-mission-location">Location</div>
             <span class="mission-type-badge" id="content-mission-type">Global</span>
         </div>
+        <div id="qr-section">
+            <div id="qr-code-container">
+                <img id="qr-code-img" src="" alt="QR Code">
+            </div>
+            <div id="qr-text">
+                <span class="qr-label">Scan to learn more</span>
+                <span class="qr-hint">Continue reading on your phone</span>
+            </div>
+        </div>
         <div id="content-display">
             <div class="loading">Loading mission information...</div>
         </div>
@@ -1086,9 +1139,14 @@
             };
             logos.local.src = 'assets/logo_local.png';
 
-            // Function to add mission pins
+            // Function to add mission pins with animated drop effect
             function addMissionPins() {
-                missions.forEach((mission) => {
+                // Store entities for animation
+                const pinEntities = [];
+                const PIN_DROP_DELAY = 80; // ms between each pin drop
+                const PIN_DROP_DURATION = 400; // ms for each pin animation
+
+                missions.forEach((mission, index) => {
                     const missionType = mission.type || 'local';
                     const logoToUse = logos[missionType];
 
@@ -1098,13 +1156,16 @@
                     // Create pin image
                     const pinImage = drawPinWithLogo(logoToUse, isFeatured);
 
+                    // Target scale for this pin
+                    const targetScale = isFeatured ? 2.0 : 1.5;
+
                     const entity = viewer.entities.add({
                         name: mission.name,
                         position: Cesium.Cartesian3.fromDegrees(mission.lng, mission.lat),
                         billboard: {
                             image: pinImage,
                             verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                            scale: isFeatured ? 2.0 : 1.5, // Larger scale for featured
+                            scale: 0, // Start at 0 for drop animation
                             scaleByDistance: new Cesium.NearFarScalar(1.5e2, isFeatured ? 1.2 : 1.0, 1.5e7, 0.5)
                         },
                         properties: {
@@ -1113,25 +1174,85 @@
                         }
                     });
 
+                    // Store for animation
+                    pinEntities.push({
+                        entity: entity,
+                        targetScale: targetScale,
+                        isFeatured: isFeatured,
+                        index: index
+                    });
+
                     // Store featured entity reference
                     if (isFeatured) {
                         featuredEntity = entity;
-
-                        // Add slower pulsing animation to featured pin
-                        let pulseScale = 1.0;
-                        let pulseDirection = 1;
-
-                        viewer.scene.preRender.addEventListener(function () {
-                            if (featuredEntity && featuredEntity.billboard) {
-                                pulseScale += 0.002 * pulseDirection; // Reduced from 0.015 to 0.005 for slower animation
-                                if (pulseScale > 1.2 || pulseScale < 1.0) { // Reduced max scale from 1.3 to 1.2 for subtler effect
-                                    pulseDirection *= -1;
-                                }
-                                featuredEntity.billboard.scale = pulseScale * 2.0;
-                            }
-                        });
                     }
                 });
+
+                // Animate pins dropping in with staggered timing
+                pinEntities.forEach((pinData, index) => {
+                    setTimeout(() => {
+                        animatePinDrop(pinData.entity, pinData.targetScale, PIN_DROP_DURATION, pinData.isFeatured);
+                    }, index * PIN_DROP_DELAY);
+                });
+
+                // Pin drop animation with bounce effect
+                function animatePinDrop(entity, targetScale, duration, isFeatured) {
+                    const startTime = Date.now();
+
+                    function animate() {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+
+                        // Ease-out bounce effect
+                        let scale;
+                        if (progress < 0.6) {
+                            // Overshoot
+                            scale = targetScale * (1.3 * easeOutQuad(progress / 0.6));
+                        } else if (progress < 0.8) {
+                            // Bounce back
+                            const bounceProgress = (progress - 0.6) / 0.2;
+                            scale = targetScale * (1.3 - 0.35 * easeOutQuad(bounceProgress));
+                        } else {
+                            // Settle
+                            const settleProgress = (progress - 0.8) / 0.2;
+                            scale = targetScale * (0.95 + 0.05 * easeOutQuad(settleProgress));
+                        }
+
+                        if (entity.billboard) {
+                            entity.billboard.scale = scale;
+                        }
+
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        } else if (isFeatured) {
+                            // Start pulsing animation for featured pin after drop completes
+                            startFeaturedPulse(entity, targetScale);
+                        }
+                    }
+
+                    animate();
+                }
+
+                // Easing function
+                function easeOutQuad(t) {
+                    return t * (2 - t);
+                }
+
+                // Featured pin pulsing animation
+                function startFeaturedPulse(entity, baseScale) {
+                    let pulseScale = 1.0;
+                    let pulseDirection = 1;
+
+                    viewer.scene.preRender.addEventListener(function () {
+                        if (entity && entity.billboard && featuredEntity === entity) {
+                            pulseScale += 0.002 * pulseDirection;
+                            if (pulseScale > 1.2 || pulseScale < 1.0) {
+                                pulseDirection *= -1;
+                            }
+                            entity.billboard.scale = pulseScale * baseScale;
+                        }
+                    });
+                }
             }
 
             // Handle mouse events
@@ -1397,6 +1518,10 @@
                 document.getElementById('content-mission-name').textContent = mission.name;
                 document.getElementById('content-mission-location').textContent = getLocationName(mission);
                 document.getElementById('content-mission-type').textContent = mission.type.charAt(0).toUpperCase() + mission.type.slice(1) + ' Mission';
+
+                // Generate QR code for mission URL
+                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mission.url)}`;
+                document.getElementById('qr-code-img').src = qrCodeUrl;
 
                 // Dim globe and show content panel
                 document.body.classList.add('globe-dimmed');
