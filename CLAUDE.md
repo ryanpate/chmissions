@@ -26,8 +26,10 @@ CHMissions/
 │   └── missions.json       # Mission data with coordinates
 ├── pages/                  # Scraped mission detail pages
 ├── assets/                 # Logos, fonts, pin icons
-└── scraper/
-    └── scrape-pages.js     # Puppeteer content scraper
+├── scraper/
+│   └── scrape-pages.js     # Puppeteer content scraper
+└── .github/workflows/
+    └── sync-missions.yml   # Daily auto-sync workflow
 ```
 
 ## Adding a New Mission Partner
@@ -92,6 +94,24 @@ Access `/admin.html` to set a featured mission. The featured mission:
 - Night lights layer: Asset ID 3812
 - Camera constraints: 10km - 30,000km altitude
 - Zoom distances vary by mission type (local: 50km, regional: 300km, global: 1000km)
+
+## Automated Content Sync
+
+GitHub Actions automatically syncs mission content daily:
+
+- **Schedule:** Runs at 3 AM Central Time (9 AM UTC)
+- **Process:** Scrapes all mission pages from Cherry Hills website
+- **Auto-commit:** Only commits if content has changed
+- **Trigger:** Can also be run manually from GitHub Actions tab
+
+### Manual Trigger
+1. Go to repository on GitHub
+2. Click "Actions" tab
+3. Select "Sync Mission Content"
+4. Click "Run workflow"
+
+### Workflow Location
+`.github/workflows/sync-missions.yml`
 
 ## Dependencies
 
