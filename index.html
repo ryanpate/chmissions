@@ -1549,6 +1549,85 @@
             // Enable smooth camera movement
             viewer.scene.screenSpaceCameraController.enableTilt = true;
             viewer.scene.screenSpaceCameraController.enableLook = false;
+
+            // ============================================
+            // SLOW GLOBE AUTO-ROTATE WHEN IDLE
+            // ============================================
+
+            let isRotating = false;
+            let rotationStartTimer = null;
+            let lastRotationTime = Date.now();
+            const ROTATION_SPEED = 0.05; // Degrees per frame (very slow)
+            const IDLE_BEFORE_ROTATE = 30000; // 30 seconds before starting rotation
+
+            // Start globe rotation
+            function startGlobeRotation() {
+                if (isRotating) return;
+
+                // Don't rotate if content panel or preview is open
+                if (document.getElementById('content-frame').classList.contains('active') ||
+                    document.getElementById('mission-preview').classList.contains('active')) {
+                    return;
+                }
+
+                isRotating = true;
+                lastRotationTime = Date.now();
+                console.log('Globe rotation started');
+            }
+
+            // Stop globe rotation
+            function stopGlobeRotation() {
+                isRotating = false;
+                clearTimeout(rotationStartTimer);
+                console.log('Globe rotation stopped');
+            }
+
+            // Schedule rotation to start after idle period
+            function scheduleRotationStart() {
+                clearTimeout(rotationStartTimer);
+                rotationStartTimer = setTimeout(() => {
+                    startGlobeRotation();
+                }, IDLE_BEFORE_ROTATE);
+            }
+
+            // Rotation render loop
+            viewer.scene.preRender.addEventListener(function(scene, time) {
+                if (!isRotating) return;
+
+                // Don't rotate if content or preview is showing
+                if (document.getElementById('content-frame').classList.contains('active') ||
+                    document.getElementById('mission-preview').classList.contains('active')) {
+                    stopGlobeRotation();
+                    return;
+                }
+
+                // Calculate smooth rotation based on elapsed time
+                const now = Date.now();
+                const deltaTime = (now - lastRotationTime) / 1000; // seconds
+                lastRotationTime = now;
+
+                // Rotate camera around the globe (heading change)
+                viewer.camera.rotateRight(Cesium.Math.toRadians(ROTATION_SPEED));
+            });
+
+            // Stop rotation and reschedule on any interaction
+            function handleUserInteraction() {
+                stopGlobeRotation();
+                scheduleRotationStart();
+            }
+
+            // Listen for user interactions to stop/restart rotation
+            document.addEventListener('click', handleUserInteraction);
+            document.addEventListener('touchstart', handleUserInteraction, { passive: true });
+            document.addEventListener('mousemove', handleUserInteraction);
+            document.addEventListener('wheel', handleUserInteraction, { passive: true });
+
+            // Also listen on the Cesium canvas specifically
+            viewer.scene.canvas.addEventListener('pointerdown', handleUserInteraction);
+            viewer.scene.canvas.addEventListener('pointermove', handleUserInteraction);
+
+            // Start the idle timer initially
+            scheduleRotationStart();
         }
 
         // Auto-refresh functionality
