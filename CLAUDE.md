@@ -1,0 +1,102 @@
+# Cherry Hills Missions Kiosk
+
+## Overview
+
+Interactive touchscreen kiosk application for Cherry Hills Church (Springfield, IL) that displays mission partners on a 3D globe. Runs on a Windows 11 mini PC in kiosk mode that reboots daily.
+
+**Live Site:** Hosted on Netlify (auto-deploys from main branch)
+**Repository:** https://github.com/ryanpate/chmissions
+
+## Tech Stack
+
+- **3D Globe:** Cesium.js 1.95
+- **Frontend:** Vanilla HTML/CSS/JavaScript (no framework)
+- **Data:** Static JSON + pre-scraped HTML pages
+- **Scraping:** Puppeteer (Node.js)
+- **Hosting:** Netlify (static files, no build step)
+
+## Project Structure
+
+```
+CHMissions/
+├── index.html              # Main 3D globe application
+├── admin.html              # Featured mission admin panel
+├── screensaver.html        # Kiosk idle state
+├── data/
+│   └── missions.json       # Mission data with coordinates
+├── pages/                  # Scraped mission detail pages
+├── assets/                 # Logos, fonts, pin icons
+└── scraper/
+    └── scrape-pages.js     # Puppeteer content scraper
+```
+
+## Adding a New Mission Partner
+
+1. Add entry to `data/missions.json`:
+```json
+{
+  "name": "Partner Name",
+  "lat": 0.0,
+  "lng": 0.0,
+  "url": "https://cherryhillsfamily.org/missions/TYPE/profile/SLUG",
+  "localFile": "partner-name.html",
+  "type": "local|regional|global"
+}
+```
+
+2. Run the scraper to fetch page content:
+```bash
+node scraper/scrape-pages.js
+```
+
+3. Commit and push to deploy:
+```bash
+git add .
+git commit -m "added [Partner Name] mission partner"
+git push
+```
+
+## Mission Types
+
+- **local:** Springfield, IL area (pin: logo_local.png)
+- **regional:** Illinois region (pin: logo_regional.png)
+- **global:** International (pin: logo_global.png)
+
+## Kiosk Behaviors
+
+- **10 min inactivity:** Returns to home/featured mission view
+- **30 min inactivity:** Shows screensaver
+- **12-hour interval:** Auto-refreshes for content updates
+- **Daily reboot:** Windows mini PC reboots to ensure fresh state
+
+## Admin Panel
+
+Access `/admin.html` to set a featured mission. The featured mission:
+- Gets a gold pulsing pin on the globe
+- Shows a banner at the top of the screen
+- Becomes the default home view
+- Stored in browser localStorage
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `index.html` | Main application (~1050 lines) |
+| `data/missions.json` | Mission coordinates and metadata |
+| `scraper/scrape-pages.js` | Puppeteer script for content updates |
+| `pages/*.html` | Pre-scraped mission content (offline-capable) |
+
+## Cesium Configuration
+
+- Uses Cesium Ion for imagery (requires token in index.html)
+- Night lights layer: Asset ID 3812
+- Camera constraints: 10km - 30,000km altitude
+- Zoom distances vary by mission type (local: 50km, regional: 300km, global: 1000km)
+
+## Dependencies
+
+```bash
+npm install  # Installs puppeteer and fs-extra for scraping
+```
+
+Only needed for running the scraper. The site itself has no build dependencies.
