@@ -346,6 +346,128 @@
             font-weight: 600;
             margin-left: 8px;
         }
+
+        /* Touch Feedback - Ripple Effect */
+        .ripple-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74, 144, 226, 0.6) 0%, rgba(74, 144, 226, 0.3) 50%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple-expand 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced Button States for 65" Touch */
+        #home-button,
+        #back-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.15s ease;
+            min-width: 120px;
+            min-height: 60px;
+        }
+
+        #home-button:active,
+        #back-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+            background: #2d6db5;
+        }
+
+        /* Button ripple effect */
+        .button-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: button-ripple 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes button-ripple {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Featured Banner Touch Feedback */
+        #featured-banner {
+            transition: all 0.15s ease;
+        }
+
+        #featured-banner:active {
+            transform: translateX(-50%) scale(0.97);
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        /* Touch indicator pulse on interactive elements */
+        .touch-pulse {
+            animation: touch-pulse 0.3s ease-out;
+        }
+
+        @keyframes touch-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
+            }
+            100% {
+                box-shadow: 0 0 0 20px rgba(74, 144, 226, 0);
+            }
+        }
+
+        /* Pin touch glow effect */
+        .pin-touched {
+            filter: drop-shadow(0 0 20px rgba(74, 144, 226, 0.9)) drop-shadow(0 0 40px rgba(74, 144, 226, 0.6));
+        }
+
+        /* Global touch feedback overlay */
+        .touch-point {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(74, 144, 226, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: touch-point-expand 0.4s ease-out forwards;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        @keyframes touch-point-expand {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -744,6 +866,20 @@
                     const mission = pickedObject.id.properties.mission.getValue();
                     const entity = pickedObject.id;
 
+                    // Visual feedback: Pulse the selected pin
+                    if (entity.billboard) {
+                        const originalScale = entity.billboard.scale.getValue ? entity.billboard.scale.getValue() : entity.billboard.scale;
+
+                        // Quick scale-up animation for selection feedback
+                        entity.billboard.scale = originalScale * 1.5;
+                        setTimeout(() => {
+                            entity.billboard.scale = originalScale * 1.3;
+                        }, 100);
+                        setTimeout(() => {
+                            entity.billboard.scale = originalScale * 1.4;
+                        }, 200);
+                    }
+
                     // Set zoom distance based on mission type
                     let zoomDistance;
                     switch (mission.type) {
@@ -994,6 +1130,9 @@
             // Disable double-click zoom
             viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
+            // Setup touch feedback for canvas interactions
+            setupCanvasTouchFeedback(viewer);
+
             // Set minimum and maximum zoom distances
             viewer.scene.screenSpaceCameraController.minimumZoomDistance = 10000;
             viewer.scene.screenSpaceCameraController.maximumZoomDistance = 30000000;
@@ -1042,7 +1181,118 @@
         
         // Setup auto-refresh
         setupAutoRefresh();
-        
+
+        // ============================================
+        // TOUCH FEEDBACK SYSTEM FOR 65" TOUCHSCREEN
+        // ============================================
+
+        // Create ripple effect at touch point
+        function createRipple(x, y, size = 200) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = size + 'px';
+            ripple.style.height = size + 'px';
+            document.body.appendChild(ripple);
+
+            // Remove after animation completes
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        // Create touch point indicator
+        function createTouchPoint(x, y) {
+            const touchPoint = document.createElement('div');
+            touchPoint.className = 'touch-point';
+            touchPoint.style.left = x + 'px';
+            touchPoint.style.top = y + 'px';
+            document.body.appendChild(touchPoint);
+
+            // Remove after animation completes
+            setTimeout(() => touchPoint.remove(), 400);
+        }
+
+        // Create button ripple effect
+        function createButtonRipple(event, button) {
+            const rect = button.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const ripple = document.createElement('span');
+            ripple.className = 'button-ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+
+            button.appendChild(ripple);
+
+            setTimeout(() => ripple.remove(), 500);
+        }
+
+        // Global touch/click feedback
+        function handleGlobalTouch(event) {
+            const x = event.clientX || (event.touches && event.touches[0].clientX);
+            const y = event.clientY || (event.touches && event.touches[0].clientY);
+
+            if (x && y) {
+                createTouchPoint(x, y);
+                createRipple(x, y);
+            }
+        }
+
+        // Add touch feedback to buttons
+        function setupButtonFeedback() {
+            const buttons = document.querySelectorAll('#home-button, #back-button, #featured-banner');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    createButtonRipple(e, this);
+                    this.classList.add('touch-pulse');
+                    setTimeout(() => this.classList.remove('touch-pulse'), 300);
+                });
+
+                button.addEventListener('touchstart', function(e) {
+                    this.classList.add('touch-pulse');
+                }, { passive: true });
+
+                button.addEventListener('touchend', function(e) {
+                    setTimeout(() => this.classList.remove('touch-pulse'), 150);
+                }, { passive: true });
+            });
+        }
+
+        // Initialize touch feedback on Cesium canvas for pin interactions
+        function setupCanvasTouchFeedback(viewer) {
+            const canvas = viewer.scene.canvas;
+
+            canvas.addEventListener('click', function(e) {
+                createTouchPoint(e.clientX, e.clientY);
+
+                // Check if we clicked on a pin
+                const pickedObject = viewer.scene.pick(new Cesium.Cartesian2(e.clientX, e.clientY));
+                if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.billboard) {
+                    // Create larger ripple for pin selection
+                    createRipple(e.clientX, e.clientY, 300);
+                } else {
+                    // Standard ripple for globe interaction
+                    createRipple(e.clientX, e.clientY, 150);
+                }
+            });
+
+            canvas.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches[0]) {
+                    const touch = e.touches[0];
+                    createTouchPoint(touch.clientX, touch.clientY);
+                }
+            }, { passive: true });
+        }
+
+        // Setup all touch feedback after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            setupButtonFeedback();
+        });
+
         // Start loading missions when page loads
         loadMissions();
     </script>

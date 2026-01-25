@@ -88,6 +88,62 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Touch Feedback for Screensaver */
+        .touch-ripple {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74, 144, 226, 0.8) 0%, rgba(74, 144, 226, 0.4) 40%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            animation: screensaver-ripple 0.8s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes screensaver-ripple {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .touch-ring {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: touch-ring-expand 0.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 1001;
+        }
+
+        @keyframes touch-ring-expand {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* Touch text feedback */
+        .touch-text-active {
+            animation: text-flash 0.3s ease-out;
+        }
+
+        @keyframes text-flash {
+            0% { transform: scale(1); color: #fff; }
+            50% { transform: scale(1.1); color: #4A90E2; }
+            100% { transform: scale(1); color: #fff; }
+        }
     </style>
     <script>
         // Auto-refresh functionality
@@ -131,12 +187,55 @@
         window.addEventListener('load', setupAutoRefresh);
     </script>
 </head>
-<body onclick="window.location.href='index.html'">
+<body>
     <div class="bg-animation"></div>
     <div class="logo-container">
         <img src="assets/logo.png" alt="Cherry Hills" class="logo" onerror="this.style.border='2px solid red'">
     </div>
-    <h1 class="touch-text">TOUCH TO START</h1>
+    <h1 class="touch-text" id="touchText">TOUCH TO START</h1>
     <p class="subtitle">Explore Our Global Missions</p>
+
+    <script>
+        // Touch feedback for screensaver
+        function createTouchFeedback(x, y) {
+            // Create ripple
+            const ripple = document.createElement('div');
+            ripple.className = 'touch-ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '400px';
+            ripple.style.height = '400px';
+            document.body.appendChild(ripple);
+
+            // Create ring
+            const ring = document.createElement('div');
+            ring.className = 'touch-ring';
+            ring.style.left = x + 'px';
+            ring.style.top = y + 'px';
+            document.body.appendChild(ring);
+
+            // Animate text
+            const touchText = document.getElementById('touchText');
+            touchText.classList.add('touch-text-active');
+
+            // Navigate after brief feedback delay
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 300);
+        }
+
+        // Handle both click and touch
+        document.body.addEventListener('click', function(e) {
+            createTouchFeedback(e.clientX, e.clientY);
+        });
+
+        document.body.addEventListener('touchstart', function(e) {
+            if (e.touches && e.touches[0]) {
+                const touch = e.touches[0];
+                createTouchFeedback(touch.clientX, touch.clientY);
+            }
+            e.preventDefault();
+        }, { passive: false });
+    </script>
 </body>
 </html>
