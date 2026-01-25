@@ -206,5 +206,13 @@
     "url": "https://cherryhillsfamily.org/missions/global/profile/el-roi-haiti",
     "localFile": "el-roi-haiti.html",
     "type": "global"
+  },
+  {
+    "name": "Melody and Saleh Nassor",
+    "lat": -6.16592,
+    "lng": 39.2026,
+    "url": "https://cherryhillsfamily.org/missions/global/profile/melody-and-saleh-nassor",
+    "localFile": "melody-and-saleh-nassor.html",
+    "type": "global"
   }
 ]
