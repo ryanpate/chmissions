@@ -219,121 +219,41 @@
             }
         }
 
-        /* Split-View Content Panel - 40% width on right */
+        /* Full-Screen Content Panel */
         #content-frame {
             position: absolute;
             top: 0;
-            right: -45%;
-            width: 40%;
+            left: 0;
+            width: 100%;
             height: 100%;
             background: #f5f5f5;
-            transition: right 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             z-index: 2000;
-            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
-            display: flex;
+            display: none;
             flex-direction: column;
         }
 
         #content-frame.active {
-            right: 0;
-        }
-
-        /* Content header with mission info */
-        #content-header {
-            background: linear-gradient(135deg, #4A90E2, #357ABD);
-            padding: 30px 35px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        #content-header h2 {
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        #content-header .mission-location {
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 20px;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
-
-        #content-header .mission-type-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        /* QR Code Section */
-        #qr-section {
             display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 20px 30px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-bottom: 1px solid #dee2e6;
-            flex-shrink: 0;
-        }
-
-        #qr-code-container {
-            background: white;
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
-        }
-
-        #qr-code-img {
-            width: 100px;
-            height: 100px;
-            display: block;
-        }
-
-        #qr-text {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        #qr-text .qr-label {
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        #qr-text .qr-hint {
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 16px;
-            color: #666;
         }
 
         /* Back button fixed at bottom of content panel */
         #back-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
             background: #4A90E2;
             color: white;
             border: none;
-            padding: 22px 40px;
-            border-radius: 0;
+            padding: 20px 40px;
+            border-radius: 35px;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 600;
             cursor: pointer;
             z-index: 2001;
             transition: all 0.2s ease;
             display: none;
-            width: 100%;
-            min-height: 80px;
-            flex-shrink: 0;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 25px rgba(74, 144, 226, 0.4);
         }
 
         #back-button:hover {
@@ -356,6 +276,8 @@
             overflow-y: auto;
             color: #333;
             background: #ffffff;
+            width: 100%;
+            height: 100%;
         }
 
         #content-display iframe {
@@ -518,20 +440,6 @@
             color: #999;
             text-align: center;
             margin-top: 15px;
-        }
-
-        /* Hide overlapping elements when content panel is open */
-        #content-frame.active ~ #featured-banner,
-        #content-frame.active ~ #home-button {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        /* Dim the globe slightly when content is showing */
-        .globe-dimmed #cesiumContainer {
-            filter: brightness(0.7);
-            transition: filter 0.5s ease;
         }
 
         .loading {
@@ -842,24 +750,10 @@
     <button id="home-button">🏠 Home</button>
 
     <div id="content-frame">
-        <div id="content-header">
-            <h2 id="content-mission-name">Mission Name</h2>
-            <div class="mission-location" id="content-mission-location">Location</div>
-            <span class="mission-type-badge" id="content-mission-type">Global</span>
-        </div>
-        <div id="qr-section">
-            <div id="qr-code-container">
-                <img id="qr-code-img" src="" alt="QR Code">
-            </div>
-            <div id="qr-text">
-                <span class="qr-label">Scan to learn more</span>
-                <span class="qr-hint">Continue reading on your phone</span>
-            </div>
-        </div>
         <div id="content-display">
             <div class="loading">Loading mission information...</div>
         </div>
-        <button id="back-button">← Return to Globe</button>
+        <button id="back-button">← Back to Globe</button>
     </div>
 
     <script>
@@ -1376,10 +1270,9 @@
             // Store the last viewed position
             let lastViewedPosition = null;
 
-            // Back button - updated to return to featured or home
+            // Back button - return to globe
             document.getElementById('back-button').addEventListener('click', () => {
                 document.getElementById('content-frame').classList.remove('active');
-                document.body.classList.remove('globe-dimmed');
                 hidePreviewCard();
 
                 // Determine where to return to
@@ -1451,22 +1344,12 @@
                 return locations[mission.name] || 'International';
             }
 
-            // Show mission content
+            // Show mission content (full screen)
             async function showMissionContent(mission) {
                 const contentFrame = document.getElementById('content-frame');
                 const contentDisplay = document.getElementById('content-display');
 
-                // Update header with mission info
-                document.getElementById('content-mission-name').textContent = mission.name;
-                document.getElementById('content-mission-location').textContent = getLocationName(mission);
-                document.getElementById('content-mission-type').textContent = mission.type.charAt(0).toUpperCase() + mission.type.slice(1) + ' Mission';
-
-                // Generate QR code for mission URL
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mission.url)}`;
-                document.getElementById('qr-code-img').src = qrCodeUrl;
-
-                // Dim globe and show content panel
-                document.body.classList.add('globe-dimmed');
+                // Show content panel full screen
                 contentFrame.classList.add('active');
 
                 try {
@@ -1542,7 +1425,6 @@
                 inactivityTimer = setTimeout(() => {
                     // Return to featured mission or home
                     document.getElementById('content-frame').classList.remove('active');
-                    document.body.classList.remove('globe-dimmed');
 
                     // Hide preview card if showing
                     document.getElementById('mission-preview').classList.remove('active');
