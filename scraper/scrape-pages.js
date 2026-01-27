@@ -21,6 +21,18 @@ async function scrapeMissionPages() {
             // Wait for main content to load
             await page.waitForSelector('main', { timeout: 10000 }).catch(() => {});
             
+            // Extract the profile image URL before removing elements
+            const imageUrl = await page.evaluate(() => {
+                const img = document.querySelector('.mission-profile-image');
+                return img ? img.src : null;
+            });
+
+            // Save image URL to mission data
+            if (imageUrl) {
+                mission.image = imageUrl;
+                console.log(`  Found image: ${imageUrl}`);
+            }
+
             // Remove navigation, footer, and process links
             await page.evaluate(() => {
                 // Remove unwanted elements
