@@ -20,10 +20,10 @@ Interactive touchscreen kiosk application for Cherry Hills Church (Springfield, 
 ```
 CHMissions/
 ├── index.html              # Main 3D globe application
-├── admin.html              # Featured mission admin panel
 ├── screensaver.html        # Kiosk idle state
 ├── data/
-│   └── missions.json       # Mission data with coordinates
+│   ├── missions.json       # Mission data with coordinates
+│   └── featured.json       # Currently featured mission
 ├── pages/                  # Scraped mission detail pages
 ├── assets/                 # Logos, fonts, pin icons
 ├── scraper/
@@ -71,20 +71,29 @@ git push
 - **12-hour interval:** Auto-refreshes for content updates
 - **Daily reboot:** Windows mini PC reboots to ensure fresh state
 
-## Admin Panel
+## Featured Mission
 
-Access `/admin.html` to set a featured mission. The featured mission:
+To set or change the featured mission, edit `data/featured.json`:
+```json
+{
+  "name": "Mission Partner Name"
+}
+```
+
+The name must exactly match a name in `missions.json`. The featured mission:
 - Gets a gold pulsing pin on the globe
-- Shows a banner at the top of the screen
-- Becomes the default home view
-- Stored in browser localStorage
+- Shows a clickable banner on the right side of the screen
+- Becomes the default home view after inactivity
+
+To remove the featured mission, set the name to empty string or delete the file.
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Main application (~1050 lines) |
+| `index.html` | Main application |
 | `data/missions.json` | Mission coordinates and metadata |
+| `data/featured.json` | Currently featured mission name |
 | `scraper/scrape-pages.js` | Puppeteer script for content updates |
 | `pages/*.html` | Pre-scraped mission content (offline-capable) |
 
