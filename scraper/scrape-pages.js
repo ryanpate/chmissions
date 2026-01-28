@@ -5,7 +5,10 @@ const path = require('path');
 const missions = require('../data/missions.json');
 
 async function scrapeMissionPages() {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     
     for (const mission of missions) {
         try {
