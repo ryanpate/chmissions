@@ -762,9 +762,10 @@
             try {
                 const response = await fetch('data/featured.json');
                 if (response.ok) {
-                    featuredMission = await response.json();
-                    // Display featured mission banner
-                    if (featuredMission && featuredMission.name) {
+                    const data = await response.json();
+                    // Only set featuredMission if name is non-empty
+                    if (data && data.name) {
+                        featuredMission = data;
                         document.getElementById('featured-mission-name').textContent = featuredMission.name;
                         document.getElementById('featured-banner').classList.add('active');
                     }
