@@ -757,13 +757,25 @@
         let featuredMission = null;
         let featuredEntity = null;
 
-        // Load featured mission from JSON file
+        // Load featured mission from localStorage (set by admin page), falling back to featured.json
         async function loadFeaturedMission() {
             try {
+                // Check localStorage first (written by admin page)
+                const stored = localStorage.getItem('featuredMission');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    if (data && data.name) {
+                        featuredMission = data;
+                        document.getElementById('featured-mission-name').textContent = featuredMission.name;
+                        document.getElementById('featured-banner').classList.add('active');
+                    }
+                    return; // localStorage takes priority, even if cleared
+                }
+
+                // Fall back to featured.json if localStorage has never been set
                 const response = await fetch('data/featured.json');
                 if (response.ok) {
                     const data = await response.json();
-                    // Only set featuredMission if name is non-empty
                     if (data && data.name) {
                         featuredMission = data;
                         document.getElementById('featured-mission-name').textContent = featuredMission.name;

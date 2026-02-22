@@ -247,7 +247,8 @@
         function loadFeaturedMission() {
             const stored = localStorage.getItem('featuredMission');
             if (stored) {
-                featuredMission = JSON.parse(stored);
+                const data = JSON.parse(stored);
+                featuredMission = (data && data.name) ? data : null;
                 updateFeaturedDisplay();
             }
         }
@@ -293,7 +294,7 @@
         // Clear featured mission
         function clearFeaturedMission() {
             featuredMission = null;
-            localStorage.removeItem('featuredMission');
+            localStorage.setItem('featuredMission', JSON.stringify({ name: '' }));
             updateFeaturedDisplay();
         }
         
