@@ -356,11 +356,97 @@
             height: 60px;
             object-fit: cover;
             border-radius: 4px;
+            cursor: pointer;
         }
 
         .collection-actions {
             display: flex;
             gap: 10px;
+        }
+
+        .manage-photos-btn {
+            background: none;
+            border: 1px solid #4A90E2;
+            color: #4A90E2;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 13px;
+        }
+
+        .manage-photos-btn:hover {
+            background: #e3f2fd;
+        }
+
+        .photo-manager {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .photo-manager.active {
+            display: block;
+        }
+
+        .photo-manager-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .managed-photo {
+            position: relative;
+            width: 100px;
+        }
+
+        .managed-photo img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .managed-photo .photo-caption {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .managed-photo .photo-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .managed-photo .photo-actions button {
+            flex: 1;
+            padding: 3px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            background: white;
+        }
+
+        .managed-photo .photo-actions .move-btn:hover {
+            background: #e3f2fd;
+        }
+
+        .managed-photo .photo-actions .delete-photo-btn {
+            color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        .managed-photo .photo-actions .delete-photo-btn:hover {
+            background: #ffebee;
         }
 
         .banner-select {
@@ -757,10 +843,23 @@
             photosData.collections.forEach(collection => {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
+                const cid = escapeHtml(collection.id);
 
                 const thumbsHtml = collection.photos.slice(0, 5).map(p =>
                     `<img src="${API_URL}/photos/${escapeHtml(p.file)}" alt="${escapeHtml(p.caption || '')}" onerror="this.style.background='#ddd'">`
                 ).join('');
+
+                const managedPhotosHtml = collection.photos.map((p, i) => `
+                    <div class="managed-photo">
+                        <img src="${API_URL}/photos/${escapeHtml(p.file)}" alt="${escapeHtml(p.caption || '')}" onerror="this.style.background='#ddd'">
+                        <div class="photo-caption">${escapeHtml(p.caption || p.file)}</div>
+                        <div class="photo-actions">
+                            <button class="move-btn" onclick="movePhoto('${cid}', ${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Move left">&larr;</button>
+                            <button class="move-btn" onclick="movePhoto('${cid}', ${i}, 1)" ${i === collection.photos.length - 1 ? 'disabled' : ''} title="Move right">&rarr;</button>
+                            <button class="delete-photo-btn" onclick="deletePhoto('${cid}', '${escapeHtml(p.file)}')" title="Delete photo">&times;</button>
+                        </div>
+                    </div>
+                `).join('');
 
                 card.innerHTML = `
                     <h4>${escapeHtml(collection.title)}</h4>
@@ -770,12 +869,57 @@
                     </div>
                     <div class="photo-thumbs">${thumbsHtml}</div>
                     <div class="collection-actions">
-                        <button class="button danger" onclick="deleteCollection('${escapeHtml(collection.id)}')">Delete</button>
+                        <button class="manage-photos-btn" onclick="toggleManagePhotos(this)">Manage Photos</button>
+                        <button class="button danger" onclick="deleteCollection('${cid}')">Delete Collection</button>
+                    </div>
+                    <div class="photo-manager">
+                        <div class="photo-manager-grid">${managedPhotosHtml}</div>
                     </div>
                 `;
 
                 grid.appendChild(card);
             });
+        }
+
+        function toggleManagePhotos(btn) {
+            const manager = btn.closest('.collection-card').querySelector('.photo-manager');
+            manager.classList.toggle('active');
+            btn.textContent = manager.classList.contains('active') ? 'Hide Photos' : 'Manage Photos';
+        }
+
+        async function deletePhoto(collectionId, filename) {
+            if (!confirm('Delete this photo?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/collections/${encodeURIComponent(collectionId)}/photos/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Password': ADMIN_PASSWORD }
+                });
+
+                if (!response.ok) throw new Error('Delete failed');
+                loadAndDisplayCollections();
+            } catch (error) {
+                alert('Error deleting photo: ' + error.message);
+            }
+        }
+
+        async function movePhoto(collectionId, index, direction) {
+            const newIndex = index + direction;
+            try {
+                const response = await fetch(`${API_URL}/api/collections/${encodeURIComponent(collectionId)}/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Password': ADMIN_PASSWORD
+                    },
+                    body: JSON.stringify({ fromIndex: index, toIndex: newIndex })
+                });
+
+                if (!response.ok) throw new Error('Reorder failed');
+                loadAndDisplayCollections();
+            } catch (error) {
+                alert('Error moving photo: ' + error.message);
+            }
         }
 
         async function deleteCollection(collectionId) {

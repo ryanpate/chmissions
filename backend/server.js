@@ -223,6 +223,29 @@ app.delete('/api/collections/:id/photos/:filename', requireAuth, (req, res) => {
     }
 });
 
+// PUT /api/collections/:id/reorder - Reorder photos in a collection
+app.put('/api/collections/:id/reorder', requireAuth, (req, res) => {
+    try {
+        const { fromIndex, toIndex } = req.body;
+        const data = readManifest();
+        const collection = data.collections.find(c => c.id === req.params.id);
+
+        if (!collection) return res.status(404).json({ error: 'Collection not found' });
+
+        if (fromIndex < 0 || fromIndex >= collection.photos.length ||
+            toIndex < 0 || toIndex >= collection.photos.length) {
+            return res.status(400).json({ error: 'Invalid index' });
+        }
+
+        const [photo] = collection.photos.splice(fromIndex, 1);
+        collection.photos.splice(toIndex, 0, photo);
+        writeManifest(data);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', collections: readManifest().collections.length });
