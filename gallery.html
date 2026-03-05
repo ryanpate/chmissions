@@ -115,6 +115,7 @@
             margin-bottom: 10px;
         }
 
+        /* Slideshow Overlay */
         .slideshow {
             display: none;
             position: fixed;
@@ -249,6 +250,12 @@
             return { collections: [], banner: { collectionId: null, photoIndex: null } };
         }
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         function getFilterMission() {
             const params = new URLSearchParams(window.location.search);
             return params.get('mission');
@@ -281,12 +288,12 @@
                     : '';
 
                 card.innerHTML = `
-                    <img class="cover" src="${coverSrc}" alt="${collection.title}"
+                    <img class="cover" src="${coverSrc}" alt="${escapeHtml(collection.title)}"
                          onerror="this.style.background='rgba(255,255,255,0.05)'; this.alt='Photo loading...'">
                     <div class="info">
-                        <h3>${collection.title}</h3>
+                        <h3>${escapeHtml(collection.title)}</h3>
                         <div class="meta">
-                            ${collection.date}${collection.mission ? ` &middot; ${collection.mission}` : ''}
+                            ${escapeHtml(collection.date)}${collection.mission ? ` &middot; ${escapeHtml(collection.mission)}` : ''}
                             &middot; ${collection.photos.length} photo${collection.photos.length !== 1 ? 's' : ''}
                         </div>
                     </div>
@@ -338,7 +345,7 @@
         document.getElementById('slideshowNext').addEventListener('click', nextSlide);
         document.getElementById('slideshowPrev').addEventListener('click', prevSlide);
 
-        // Swipe support
+        // Swipe support for touch
         let touchStartX = 0;
         document.getElementById('slideshow').addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;

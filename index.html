@@ -1217,7 +1217,7 @@
             const previewCard = document.getElementById('mission-preview');
 
             // Show preview card at screen position
-            function showPreviewCard(mission, entity, screenPosition) {
+            async function showPreviewCard(mission, entity, screenPosition) {
                 currentPreviewMission = mission;
                 currentPreviewEntity = entity;
 
@@ -1244,6 +1244,11 @@
                 const cachedPhotos = localStorage.getItem('photosData');
                 if (cachedPhotos) {
                     photosDataForPreview = JSON.parse(cachedPhotos);
+                } else {
+                    try {
+                        const resp = await fetch('data/photos.json');
+                        if (resp.ok) photosDataForPreview = await resp.json();
+                    } catch (e) {}
                 }
                 if (photosDataForPreview && photosDataForPreview.collections.some(c => c.mission === mission.name)) {
                     photosBtn.style.display = 'block';

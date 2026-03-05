@@ -432,7 +432,7 @@
         <div class="settings-panel" id="settingsPanel">
             <label for="githubToken">GitHub Personal Access Token</label>
             <div class="hint">Required for photo uploads. Create at github.com/settings/tokens with "repo" scope. Token is stored locally in your browser only.</div>
-            <input type="text" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+            <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
             <button class="button" id="saveToken">Save Token</button>
             <span class="token-status" id="tokenStatus"></span>
         </div>
@@ -661,12 +661,21 @@
 
         updateTokenStatus();
 
+        // HTML escaping for safe innerHTML
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // Image Resize Utility
         function resizeImage(file, maxWidth = 1200) {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
+                reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
                 reader.onload = (e) => {
                     const img = new Image();
+                    img.onerror = () => reject(new Error(`Failed to load image: ${file.name}`));
                     img.onload = () => {
                         let width = img.width;
                         let height = img.height;
@@ -906,18 +915,18 @@
                 card.className = 'collection-card';
 
                 const thumbsHtml = collection.photos.slice(0, 5).map(p =>
-                    `<img src="photos/${p.file}" alt="${p.caption}" onerror="this.style.background='#ddd'; this.alt='Pending deploy'">`
+                    `<img src="photos/${escapeHtml(p.file)}" alt="${escapeHtml(p.caption)}" onerror="this.style.background='#ddd'; this.alt='Pending deploy'">`
                 ).join('');
 
                 card.innerHTML = `
-                    <h4>${collection.title}</h4>
+                    <h4>${escapeHtml(collection.title)}</h4>
                     <div class="meta">
-                        ${collection.date}${collection.mission ? ` &middot; ${collection.mission}` : ''}
+                        ${escapeHtml(collection.date)}${collection.mission ? ` &middot; ${escapeHtml(collection.mission)}` : ''}
                         &middot; ${collection.photos.length} photo${collection.photos.length !== 1 ? 's' : ''}
                     </div>
                     <div class="photo-thumbs">${thumbsHtml}</div>
                     <div class="collection-actions">
-                        <button class="button danger" onclick="deleteCollection('${collection.id}')">Delete</button>
+                        <button class="button danger" onclick="deleteCollection('${escapeHtml(collection.id)}')">Delete</button>
                     </div>
                 `;
 
