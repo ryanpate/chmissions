@@ -671,6 +671,100 @@
                 opacity: 0;
             }
         }
+#photo-banner {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 50;
+    display: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+}
+
+#photo-banner:hover {
+    transform: scale(1.02);
+}
+
+#photo-banner:active {
+    transform: scale(0.98);
+}
+
+#photo-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 1s ease;
+}
+
+#photo-banner .banner-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 15px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    z-index: 2;
+}
+
+#photo-banner .banner-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+#photo-banner .banner-caption {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 2px;
+}
+
+#photos-button {
+    position: fixed;
+    bottom: 20px;
+    left: 120px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: 'Brandon Grotesque', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 100;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+#photos-button:hover {
+    background: rgba(74, 144, 226, 0.6);
+}
+
+#mission-preview .preview-photos-btn {
+    background: rgba(74, 144, 226, 0.2);
+    color: #4A90E2;
+    border: 1px solid #4A90E2;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-family: 'Brandon Grotesque', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+#mission-preview .preview-photos-btn:hover {
+    background: rgba(74, 144, 226, 0.3);
+}
+
     </style>
 </head>
 
@@ -691,6 +785,7 @@
                 </div>
             </div>
             <button class="preview-cta" id="preview-cta">View Info</button>
+            <button class="preview-photos-btn" id="preview-photos-btn" style="display: none;">Trip Photos</button>
             <div class="preview-hint">Tap elsewhere to close</div>
         </div>
     </div>
@@ -700,6 +795,19 @@
         <h3>Featured Mission</h3>
         <p id="featured-mission-name"></p>
     </div>
+
+    <!-- Photo Banner -->
+    <div id="photo-banner">
+        <img id="photo-banner-img-1" src="" alt="">
+        <img id="photo-banner-img-2" src="" alt="" style="opacity: 0;">
+        <div class="banner-overlay">
+            <div class="banner-title" id="photo-banner-title"></div>
+            <div class="banner-caption" id="photo-banner-caption"></div>
+        </div>
+    </div>
+
+    <!-- Photos Gallery Button -->
+    <button id="photos-button">Photos</button>
 
     <div id="instructions">
         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40'%3E%3Ctext x='10' y='40' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%234A90E2'%3ECH Missions%3C/text%3E%3C/svg%3E"
@@ -1130,6 +1238,23 @@
                 const qrImg = document.getElementById('preview-qr');
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(mission.url)}`;
 
+                // Check for linked photo collections
+                const photosBtn = document.getElementById('preview-photos-btn');
+                let photosDataForPreview;
+                const cachedPhotos = localStorage.getItem('photosData');
+                if (cachedPhotos) {
+                    photosDataForPreview = JSON.parse(cachedPhotos);
+                }
+                if (photosDataForPreview && photosDataForPreview.collections.some(c => c.mission === mission.name)) {
+                    photosBtn.style.display = 'block';
+                    photosBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        window.location.href = `gallery.html?mission=${encodeURIComponent(mission.name)}`;
+                    };
+                } else {
+                    photosBtn.style.display = 'none';
+                }
+
                 // Position the preview card above the clicked point
                 // Ensure it stays within screen bounds
                 let left = screenPosition.x;
@@ -1493,6 +1618,91 @@
 
             // Initialize screensaver timer
             resetScreensaverTimer();
+
+            // Photo Banner
+            let bannerPhotos = [];
+            let bannerIndex = 0;
+            let bannerInterval = null;
+            let bannerActiveImg = 1;
+
+            async function loadPhotoBanner() {
+                let photosData;
+                const cached = localStorage.getItem('photosData');
+                if (cached) {
+                    photosData = JSON.parse(cached);
+                } else {
+                    try {
+                        const response = await fetch('data/photos.json');
+                        if (response.ok) photosData = await response.json();
+                    } catch (e) {}
+                }
+
+                if (!photosData) return;
+
+                if (photosData.collections.length > 0) {
+                    document.getElementById('photos-button').style.display = 'block';
+                }
+
+                if (photosData.banner && photosData.banner.collectionId) {
+                    const collection = photosData.collections.find(c => c.id === photosData.banner.collectionId);
+                    if (collection && collection.photos.length > 0) {
+                        bannerPhotos = collection.photos;
+                        const bannerEl = document.getElementById('photo-banner');
+                        const titleEl = document.getElementById('photo-banner-title');
+
+                        bannerEl.style.display = 'block';
+                        titleEl.textContent = collection.title;
+
+                        if (featuredMission) {
+                            bannerEl.style.bottom = '80px';
+                        }
+
+                        showBannerPhoto(0);
+
+                        if (bannerPhotos.length > 1) {
+                            bannerInterval = setInterval(() => {
+                                bannerIndex = (bannerIndex + 1) % bannerPhotos.length;
+                                showBannerPhoto(bannerIndex);
+                            }, 8000);
+                        }
+
+                        bannerEl.addEventListener('click', () => {
+                            window.location.href = 'gallery.html';
+                        });
+                    }
+                }
+            }
+
+            function showBannerPhoto(index) {
+                const photo = bannerPhotos[index];
+                const img1 = document.getElementById('photo-banner-img-1');
+                const img2 = document.getElementById('photo-banner-img-2');
+                const captionEl = document.getElementById('photo-banner-caption');
+
+                captionEl.textContent = photo.caption || '';
+
+                if (bannerActiveImg === 1) {
+                    img2.src = `photos/${photo.file}`;
+                    img2.onload = () => {
+                        img2.style.opacity = 1;
+                        img1.style.opacity = 0;
+                        bannerActiveImg = 2;
+                    };
+                } else {
+                    img1.src = `photos/${photo.file}`;
+                    img1.onload = () => {
+                        img1.style.opacity = 1;
+                        img2.style.opacity = 0;
+                        bannerActiveImg = 1;
+                    };
+                }
+            }
+
+            document.getElementById('photos-button').addEventListener('click', () => {
+                window.location.href = 'gallery.html';
+            });
+
+            loadPhotoBanner();
 
             // Reset timer on any interaction
             document.addEventListener('click', resetInactivityTimer);
