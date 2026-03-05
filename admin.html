@@ -462,6 +462,7 @@
             min-width: 250px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -717,17 +718,44 @@
             handleFiles(Array.from(e.target.files));
         });
 
-        function handleFiles(files) {
-            selectedFiles = files;
-            fileCaptions = files.map(() => '');
+        function isHeic(file) {
+            return /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
+        }
+
+        async function convertHeicToJpeg(file) {
+            const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+            const converted = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+            return converted;
+        }
+
+        async function handleFiles(rawFiles) {
             const preview = document.getElementById('filePreview');
             preview.innerHTML = '';
+            selectedFiles = [];
+            fileCaptions = [];
 
-            if (files.length > 0) {
-                dropZone.querySelector('p').textContent = `${files.length} photo${files.length !== 1 ? 's' : ''} selected`;
+            if (rawFiles.length === 0) {
+                document.getElementById('uploadBtn').disabled = true;
+                return;
             }
 
-            files.forEach((file, i) => {
+            dropZone.querySelector('p').textContent = `Converting ${rawFiles.length} photo${rawFiles.length !== 1 ? 's' : ''}...`;
+
+            for (let i = 0; i < rawFiles.length; i++) {
+                let file = rawFiles[i];
+                if (isHeic(file)) {
+                    try {
+                        file = await convertHeicToJpeg(file);
+                    } catch (e) {
+                        console.error('HEIC conversion failed:', e);
+                        alert(`Could not convert ${rawFiles[i].name}. Try converting to JPEG first.`);
+                        continue;
+                    }
+                }
+                selectedFiles.push(file);
+                fileCaptions.push('');
+
+                const idx = selectedFiles.length - 1;
                 const item = document.createElement('div');
                 item.className = 'file-preview-item';
 
@@ -738,15 +766,16 @@
                 captionInput.type = 'text';
                 captionInput.placeholder = 'Caption (optional)';
                 captionInput.addEventListener('input', (e) => {
-                    fileCaptions[i] = e.target.value;
+                    fileCaptions[idx] = e.target.value;
                 });
 
                 item.appendChild(img);
                 item.appendChild(captionInput);
                 preview.appendChild(item);
-            });
+            }
 
-            document.getElementById('uploadBtn').disabled = files.length === 0;
+            dropZone.querySelector('p').textContent = `${selectedFiles.length} photo${selectedFiles.length !== 1 ? 's' : ''} selected`;
+            document.getElementById('uploadBtn').disabled = selectedFiles.length === 0;
         }
 
         // Upload collection to Railway backend
