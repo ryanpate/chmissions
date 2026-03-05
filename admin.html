@@ -520,6 +520,7 @@
                 const response = await fetch('data/missions.json');
                 missions = await response.json();
                 displayMissions();
+                populateMissionDropdown();
             } catch (error) {
                 console.error('Error loading missions:', error);
             }
@@ -833,7 +834,6 @@
         });
 
         // Initialize photos
-        populateMissionDropdown();
         loadAndDisplayCollections();
     </script>
 </body>
