@@ -234,17 +234,14 @@
     </div>
 
     <script>
+        const API_URL = 'https://photos-api-production.up.railway.app';
         let photosData = { collections: [], banner: { collectionId: null, photoIndex: null } };
         let currentSlideshow = null;
         let currentSlideIndex = 0;
 
         async function loadPhotosData() {
-            const cached = localStorage.getItem('photosData');
-            if (cached) {
-                return JSON.parse(cached);
-            }
             try {
-                const response = await fetch('data/photos.json');
+                const response = await fetch(`${API_URL}/api/collections`);
                 if (response.ok) return await response.json();
             } catch (e) {}
             return { collections: [], banner: { collectionId: null, photoIndex: null } };
@@ -284,7 +281,7 @@
                 card.className = 'gallery-card';
 
                 const coverSrc = collection.photos.length > 0
-                    ? `photos/${collection.photos[0].file}`
+                    ? `${API_URL}/photos/${collection.photos[0].file}`
                     : '';
 
                 card.innerHTML = `
@@ -321,7 +318,7 @@
             const photo = currentSlideshow.photos[currentSlideIndex];
             const img = document.getElementById('slideshowImage');
             img.style.opacity = 0;
-            img.src = `photos/${photo.file}`;
+            img.src = `${API_URL}/photos/${photo.file}`;
             img.onload = () => { img.style.opacity = 1; };
             document.getElementById('slideshowTitle').textContent = currentSlideshow.title;
             document.getElementById('slideshowCaption').textContent = photo.caption || '';

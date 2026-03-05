@@ -1241,15 +1241,10 @@
                 // Check for linked photo collections
                 const photosBtn = document.getElementById('preview-photos-btn');
                 let photosDataForPreview;
-                const cachedPhotos = localStorage.getItem('photosData');
-                if (cachedPhotos) {
-                    photosDataForPreview = JSON.parse(cachedPhotos);
-                } else {
-                    try {
-                        const resp = await fetch('data/photos.json');
-                        if (resp.ok) photosDataForPreview = await resp.json();
-                    } catch (e) {}
-                }
+                try {
+                    const resp = await fetch('https://photos-api-production.up.railway.app/api/collections');
+                    if (resp.ok) photosDataForPreview = await resp.json();
+                } catch (e) {}
                 if (photosDataForPreview && photosDataForPreview.collections.some(c => c.mission === mission.name)) {
                     photosBtn.style.display = 'block';
                     photosBtn.onclick = (e) => {
@@ -1632,15 +1627,10 @@
 
             async function loadPhotoBanner() {
                 let photosData;
-                const cached = localStorage.getItem('photosData');
-                if (cached) {
-                    photosData = JSON.parse(cached);
-                } else {
-                    try {
-                        const response = await fetch('data/photos.json');
-                        if (response.ok) photosData = await response.json();
-                    } catch (e) {}
-                }
+                try {
+                    const response = await fetch('https://photos-api-production.up.railway.app/api/collections');
+                    if (response.ok) photosData = await response.json();
+                } catch (e) {}
 
                 if (!photosData) return;
 
@@ -1687,14 +1677,14 @@
                 captionEl.textContent = photo.caption || '';
 
                 if (bannerActiveImg === 1) {
-                    img2.src = `photos/${photo.file}`;
+                    img2.src = `https://photos-api-production.up.railway.app/photos/${photo.file}`;
                     img2.onload = () => {
                         img2.style.opacity = 1;
                         img1.style.opacity = 0;
                         bannerActiveImg = 2;
                     };
                 } else {
-                    img1.src = `photos/${photo.file}`;
+                    img1.src = `https://photos-api-production.up.railway.app/photos/${photo.file}`;
                     img1.onload = () => {
                         img1.style.opacity = 1;
                         img2.style.opacity = 0;
