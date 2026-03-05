@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Photos - Cherry Hills</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <style>
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Regular.woff2') format('woff2'),
+                 url('assets/fonts/BrandonGrotesque-Regular.woff') format('woff');
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: 'Brandon Grotesque';
+            src: url('assets/fonts/BrandonGrotesque-Bold.woff2') format('woff2'),
+                 url('assets/fonts/BrandonGrotesque-Bold.woff') format('woff');
+            font-weight: 600;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Brandon Grotesque', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(74, 144, 226, 0.3);
+            color: #fff;
+            border: 1px solid rgba(74, 144, 226, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(74, 144, 226, 0.5);
+        }
+
+        .collections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .gallery-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.12);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .gallery-card .cover {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .gallery-card .info {
+            padding: 15px;
+        }
+
+        .gallery-card .info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .gallery-card .info .meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .empty-state h2 {
+            margin-bottom: 10px;
+        }
+
+        .slideshow {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slideshow.active {
+            display: flex;
+        }
+
+        .slideshow-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .slideshow-image {
+            max-width: 90vw;
+            max-height: 75vh;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: opacity 0.5s ease;
+        }
+
+        .slideshow-caption {
+            margin-top: 20px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .slideshow-caption h3 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .slideshow-caption p {
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+        }
+
+        .slideshow-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            font-size: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .slideshow-nav:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .slideshow-nav.prev {
+            left: 20px;
+        }
+
+        .slideshow-nav.next {
+            right: 20px;
+        }
+
+        .slideshow-counter {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mission Photos</h1>
+        <a href="index.html" class="back-btn">Back to Globe</a>
+    </div>
+
+    <div class="collections-grid" id="collectionsGrid"></div>
+
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <h2>No Photo Collections Yet</h2>
+        <p>Check back soon for mission trip photos!</p>
+    </div>
+
+    <div class="slideshow" id="slideshow">
+        <button class="slideshow-close" id="slideshowClose">&times;</button>
+        <button class="slideshow-nav prev" id="slideshowPrev">&lsaquo;</button>
+        <button class="slideshow-nav next" id="slideshowNext">&rsaquo;</button>
+        <img class="slideshow-image" id="slideshowImage" src="" alt="">
+        <div class="slideshow-caption">
+            <h3 id="slideshowTitle"></h3>
+            <p id="slideshowCaption"></p>
+        </div>
+        <div class="slideshow-counter" id="slideshowCounter"></div>
+    </div>
+
+    <script>
+        let photosData = { collections: [], banner: { collectionId: null, photoIndex: null } };
+        let currentSlideshow = null;
+        let currentSlideIndex = 0;
+
+        async function loadPhotosData() {
+            const cached = localStorage.getItem('photosData');
+            if (cached) {
+                return JSON.parse(cached);
+            }
+            try {
+                const response = await fetch('data/photos.json');
+                if (response.ok) return await response.json();
+            } catch (e) {}
+            return { collections: [], banner: { collectionId: null, photoIndex: null } };
+        }
+
+        function getFilterMission() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('mission');
+        }
+
+        function displayCollections() {
+            const grid = document.getElementById('collectionsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const filterMission = getFilterMission();
+
+            let collections = photosData.collections;
+            if (filterMission) {
+                collections = collections.filter(c => c.mission === filterMission);
+                document.querySelector('.header h1').textContent = `Photos: ${filterMission}`;
+            }
+
+            if (collections.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.innerHTML = '';
+            collections.forEach(collection => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+
+                const coverSrc = collection.photos.length > 0
+                    ? `photos/${collection.photos[0].file}`
+                    : '';
+
+                card.innerHTML = `
+                    <img class="cover" src="${coverSrc}" alt="${collection.title}"
+                         onerror="this.style.background='rgba(255,255,255,0.05)'; this.alt='Photo loading...'">
+                    <div class="info">
+                        <h3>${collection.title}</h3>
+                        <div class="meta">
+                            ${collection.date}${collection.mission ? ` &middot; ${collection.mission}` : ''}
+                            &middot; ${collection.photos.length} photo${collection.photos.length !== 1 ? 's' : ''}
+                        </div>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => openSlideshow(collection));
+                grid.appendChild(card);
+            });
+        }
+
+        function openSlideshow(collection) {
+            currentSlideshow = collection;
+            currentSlideIndex = 0;
+            document.getElementById('slideshow').classList.add('active');
+            showSlide();
+        }
+
+        function closeSlideshow() {
+            document.getElementById('slideshow').classList.remove('active');
+            currentSlideshow = null;
+        }
+
+        function showSlide() {
+            if (!currentSlideshow) return;
+            const photo = currentSlideshow.photos[currentSlideIndex];
+            const img = document.getElementById('slideshowImage');
+            img.style.opacity = 0;
+            img.src = `photos/${photo.file}`;
+            img.onload = () => { img.style.opacity = 1; };
+            document.getElementById('slideshowTitle').textContent = currentSlideshow.title;
+            document.getElementById('slideshowCaption').textContent = photo.caption || '';
+            document.getElementById('slideshowCounter').textContent =
+                `${currentSlideIndex + 1} / ${currentSlideshow.photos.length}`;
+        }
+
+        function nextSlide() {
+            if (!currentSlideshow) return;
+            currentSlideIndex = (currentSlideIndex + 1) % currentSlideshow.photos.length;
+            showSlide();
+        }
+
+        function prevSlide() {
+            if (!currentSlideshow) return;
+            currentSlideIndex = (currentSlideIndex - 1 + currentSlideshow.photos.length) % currentSlideshow.photos.length;
+            showSlide();
+        }
+
+        document.getElementById('slideshowClose').addEventListener('click', closeSlideshow);
+        document.getElementById('slideshowNext').addEventListener('click', nextSlide);
+        document.getElementById('slideshowPrev').addEventListener('click', prevSlide);
+
+        // Swipe support
+        let touchStartX = 0;
+        document.getElementById('slideshow').addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.getElementById('slideshow').addEventListener('touchend', (e) => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextSlide();
+                else prevSlide();
+            }
+        });
+
+        // Inactivity: return to globe after 10 minutes
+        let galleryInactivityTimer;
+        function resetGalleryInactivity() {
+            clearTimeout(galleryInactivityTimer);
+            galleryInactivityTimer = setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 600000);
+        }
+        document.addEventListener('click', resetGalleryInactivity);
+        document.addEventListener('touchstart', resetGalleryInactivity);
+        resetGalleryInactivity();
+
+        // Initialize
+        loadPhotosData().then(data => {
+            photosData = data;
+            displayCollections();
+        });
+    </script>
+</body>
+</html>
