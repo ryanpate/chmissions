@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const sharp = require('sharp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,9 +61,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB per file (HEIC files can be large)
     fileFilter: (req, file, cb) => {
-        const allowed = /\.(jpg|jpeg|png|gif|webp)$/i;
+        const allowed = /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i;
         if (allowed.test(path.extname(file.originalname))) {
             cb(null, true);
         } else {
@@ -70,6 +71,24 @@ const upload = multer({
         }
     }
 });
+
+// Convert HEIC/HEIF files to JPEG
+async function convertHeicFiles(files) {
+    const results = [];
+    for (const file of files) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (ext === '.heic' || ext === '.heif') {
+            const jpegFilename = file.filename.replace(/\.(heic|heif)$/i, '.jpg');
+            const jpegPath = path.join(PHOTOS_DIR, jpegFilename);
+            await sharp(file.path).jpeg({ quality: 85 }).toFile(jpegPath);
+            fs.unlinkSync(file.path);
+            results.push({ ...file, filename: jpegFilename, path: jpegPath });
+        } else {
+            results.push(file);
+        }
+    }
+    return results;
+}
 
 // ===== PUBLIC ROUTES =====
 
@@ -93,19 +112,20 @@ app.get('/api/banner', (req, res) => {
 // ===== ADMIN ROUTES =====
 
 // POST /api/collections - Create a new collection with photos
-app.post('/api/collections', requireAuth, upload.array('photos', 20), (req, res) => {
+app.post('/api/collections', requireAuth, upload.array('photos', 20), async (req, res) => {
     try {
         const { title, date, mission, captions } = req.body;
 
         if (!title) return res.status(400).json({ error: 'Title is required' });
         if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'At least one photo is required' });
 
+        const convertedFiles = await convertHeicFiles(req.files);
         const captionsArray = captions ? JSON.parse(captions) : [];
 
         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const collectionId = `${date || new Date().toISOString().split('T')[0]}-${slug}`;
 
-        const photos = req.files.map((file, i) => ({
+        const photos = convertedFiles.map((file, i) => ({
             file: file.filename,
             caption: captionsArray[i] || '',
             originalName: file.originalname
@@ -175,17 +195,18 @@ app.put('/api/banner', requireAuth, (req, res) => {
 });
 
 // POST /api/collections/:id/photos - Add photos to existing collection
-app.post('/api/collections/:id/photos', requireAuth, upload.array('photos', 20), (req, res) => {
+app.post('/api/collections/:id/photos', requireAuth, upload.array('photos', 20), async (req, res) => {
     try {
         const { captions } = req.body;
         const captionsArray = captions ? JSON.parse(captions) : [];
 
+        const convertedFiles = await convertHeicFiles(req.files);
         const data = readManifest();
         const collection = data.collections.find(c => c.id === req.params.id);
 
         if (!collection) return res.status(404).json({ error: 'Collection not found' });
 
-        const newPhotos = req.files.map((file, i) => ({
+        const newPhotos = convertedFiles.map((file, i) => ({
             file: file.filename,
             caption: captionsArray[i] || '',
             originalName: file.originalname

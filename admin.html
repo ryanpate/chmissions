@@ -511,7 +511,7 @@
                     <div class="drop-zone" id="dropZone">
                         <p>Drag & drop photos here</p>
                         <div class="hint">or click to browse</div>
-                        <input type="file" id="photoFiles" multiple accept="image/*" style="display: none;">
+                        <input type="file" id="photoFiles" multiple accept="image/*,.heic,.heif" style="display: none;">
                     </div>
                     <div class="file-preview" id="filePreview"></div>
                 </div>
@@ -710,7 +710,7 @@
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
-            handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+            handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name)));
         });
 
         fileInput.addEventListener('change', (e) => {
