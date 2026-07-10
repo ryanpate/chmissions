@@ -449,6 +449,88 @@
             margin-top: 16px;
         }
 
+        /* Mission Chooser - shown when a tap hits overlapping pins */
+        #mission-chooser {
+            position: absolute;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1500;
+            display: none;
+            width: 480px;
+            overflow: hidden;
+            transform: translate(-50%, -100%) translateY(-20px);
+        }
+
+        #mission-chooser.active {
+            display: block;
+        }
+
+        #mission-chooser::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid white;
+        }
+
+        #mission-chooser .chooser-title {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            padding: 24px 24px 16px;
+        }
+
+        #mission-chooser .chooser-list {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        #mission-chooser .chooser-item {
+            display: block;
+            width: 100%;
+            padding: 20px 28px;
+            min-height: 88px;
+            border: none;
+            border-top: 1px solid #eee;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Brandon Grotesque', sans-serif;
+        }
+
+        #mission-chooser .chooser-item:active {
+            background: rgba(74, 144, 226, 0.15);
+        }
+
+        #mission-chooser .chooser-item-name {
+            display: block;
+            font-size: 26px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #mission-chooser .chooser-item-location {
+            display: block;
+            font-size: 20px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        #mission-chooser .chooser-hint {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 18px;
+            color: #999;
+            text-align: center;
+            padding: 16px;
+            border-top: 1px solid #eee;
+        }
+
         .loading {
             display: flex;
             align-items: center;
@@ -816,6 +898,13 @@
             <button class="preview-photos-btn" id="preview-photos-btn" style="display: none;">Trip Photos</button>
             <div class="preview-hint">Tap elsewhere to close</div>
         </div>
+    </div>
+
+    <!-- Mission Chooser - shown when a tap hits overlapping pins -->
+    <div id="mission-chooser">
+        <div class="chooser-title">Missions at This Location</div>
+        <div class="chooser-list" id="mission-chooser-list"></div>
+        <div class="chooser-hint">Tap a mission, or tap elsewhere to close</div>
     </div>
 
     <!-- Featured Mission Banner -->
@@ -1370,6 +1459,51 @@
                 currentPreviewEntity = null;
             }
 
+            // Mission chooser - shown when a tap hits overlapping pins
+            const missionChooser = document.getElementById('mission-chooser');
+
+            function showMissionChooser(items, screenPosition) {
+                const list = document.getElementById('mission-chooser-list');
+                list.innerHTML = '';
+
+                items.forEach(function (item) {
+                    const row = document.createElement('button');
+                    row.className = 'chooser-item';
+
+                    const name = document.createElement('span');
+                    name.className = 'chooser-item-name';
+                    name.textContent = item.mission.name;
+
+                    const location = document.createElement('span');
+                    location.className = 'chooser-item-location';
+                    location.textContent = getLocationName(item.mission);
+
+                    row.appendChild(name);
+                    row.appendChild(location);
+                    row.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        hideMissionChooser();
+                        showPreviewCard(item.mission, item.entity, screenPosition);
+                    });
+                    list.appendChild(row);
+                });
+
+                missionChooser.classList.add('active');
+
+                // Position above the tap point, clamped to the screen
+                // (measure after activating so offsetHeight is valid)
+                const chooserWidth = 480;
+                let left = Math.max(chooserWidth / 2 + 20,
+                    Math.min(window.innerWidth - chooserWidth / 2 - 20, screenPosition.x));
+                let top = Math.max(missionChooser.offsetHeight + 40, screenPosition.y);
+                missionChooser.style.left = left + 'px';
+                missionChooser.style.top = top + 'px';
+            }
+
+            function hideMissionChooser() {
+                missionChooser.classList.remove('active');
+            }
+
             // Open full content from preview
             function openMissionFromPreview() {
                 if (!currentPreviewMission || !currentPreviewEntity) return;
@@ -1428,13 +1562,38 @@
                 openMissionFromPreview();
             });
 
-            // Click handler - Two-tap system
+            // Click handler - Two-tap system.
+            // drillPick with a 44px box gives a finger-sized tap target and
+            // finds ALL pins under the tap, so overlapping pins (e.g. the
+            // Springfield cluster) show a chooser instead of only the top pin.
             handler.setInputAction(function (click) {
-                const pickedObject = viewer.scene.pick(click.position);
+                const picked = viewer.scene.drillPick(click.position, 30, 44, 44);
 
-                if (Cesium.defined(pickedObject) && pickedObject.id && pickedObject.id.properties) {
-                    const mission = pickedObject.id.properties.mission.getValue();
-                    const entity = pickedObject.id;
+                // Collect distinct missions under the tap
+                const missionsAtPoint = [];
+                const seen = new Set();
+                picked.forEach(function (p) {
+                    if (p.id && p.id.properties && p.id.properties.mission) {
+                        const m = p.id.properties.mission.getValue();
+                        if (!seen.has(m.name)) {
+                            seen.add(m.name);
+                            missionsAtPoint.push({ mission: m, entity: p.id });
+                        }
+                    }
+                });
+
+                hideMissionChooser();
+
+                if (missionsAtPoint.length === 0) {
+                    // Clicked on globe (not a pin) - hide preview if showing
+                    if (currentPreviewMission) {
+                        hidePreviewCard();
+                    }
+                    return;
+                }
+
+                if (missionsAtPoint.length === 1) {
+                    const mission = missionsAtPoint[0].mission;
 
                     // If clicking the same pin that's already previewed, open content
                     if (currentPreviewMission && currentPreviewMission.name === mission.name) {
@@ -1443,20 +1602,20 @@
                     }
 
                     // Show preview card for this mission
-                    showPreviewCard(mission, entity, click.position);
-
-                } else {
-                    // Clicked on globe (not a pin) - hide preview if showing
-                    if (currentPreviewMission) {
-                        hidePreviewCard();
-                    }
+                    showPreviewCard(mission, missionsAtPoint[0].entity, click.position);
+                    return;
                 }
+
+                // Multiple overlapping pins - let the user pick one
+                hidePreviewCard();
+                showMissionChooser(missionsAtPoint, click.position);
             }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
             // Home button - updated to respect featured mission
             document.getElementById('home-button').addEventListener('click', () => {
                 // Hide preview if showing
                 hidePreviewCard();
+                hideMissionChooser();
 
                 if (featuredMission) {
                     // If there's a featured mission, go to global view centered on it
@@ -1495,6 +1654,7 @@
             document.getElementById('back-button').addEventListener('click', () => {
                 document.getElementById('content-frame').classList.remove('active');
                 hidePreviewCard();
+                hideMissionChooser();
 
                 // Determine where to return to
                 let targetView;
@@ -1600,6 +1760,7 @@
             if (featuredMission) {
                 document.getElementById('featured-banner').addEventListener('click', () => {
                     hidePreviewCard();
+                    hideMissionChooser();
                     const featured = missions.find(m => m.name === featuredMission.name);
                     if (featured) {
                         // Find the entity for the featured mission
@@ -1647,8 +1808,9 @@
                     // Return to featured mission or home
                     document.getElementById('content-frame').classList.remove('active');
 
-                    // Hide preview card if showing
+                    // Hide preview card and chooser if showing
                     document.getElementById('mission-preview').classList.remove('active');
+                    document.getElementById('mission-chooser').classList.remove('active');
 
                     if (featuredMission) {
                         const featured = missions.find(m => m.name === featuredMission.name);
@@ -1813,9 +1975,10 @@
             function startGlobeRotation() {
                 if (isRotating) return;
 
-                // Don't rotate if content panel or preview is open
+                // Don't rotate if content panel, preview, or chooser is open
                 if (document.getElementById('content-frame').classList.contains('active') ||
-                    document.getElementById('mission-preview').classList.contains('active')) {
+                    document.getElementById('mission-preview').classList.contains('active') ||
+                    document.getElementById('mission-chooser').classList.contains('active')) {
                     return;
                 }
 
@@ -1843,9 +2006,10 @@
             viewer.scene.preRender.addEventListener(function(scene, time) {
                 if (!isRotating) return;
 
-                // Don't rotate if content or preview is showing
+                // Don't rotate if content, preview, or chooser is showing
                 if (document.getElementById('content-frame').classList.contains('active') ||
-                    document.getElementById('mission-preview').classList.contains('active')) {
+                    document.getElementById('mission-preview').classList.contains('active') ||
+                    document.getElementById('mission-chooser').classList.contains('active')) {
                     stopGlobeRotation();
                     return;
                 }
