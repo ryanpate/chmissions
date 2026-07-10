@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cherry Hills Missions Globe</title>
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.95/Build/Cesium/Cesium.js"></script>
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.95/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <!-- Self-hosted Cesium 1.95 (lib/cesium) so the kiosk boots even if the CDN is unreachable -->
+    <script src="lib/cesium/Cesium.js"></script>
+    <link href="lib/cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
         /* Brandon Grotesque Font */
         @font-face {
@@ -884,6 +885,52 @@
     </div>
 
     <script>
+        // ============================================
+        // KIOSK WATCHDOG - auto-recover from fatal errors
+        // ============================================
+        // The kiosk runs unattended. If anything fatal happens (Cesium script
+        // fails to load, WebGL/render crash, uncaught error), reload the page
+        // instead of sitting broken until the daily reboot. Rate-limited so a
+        // persistent failure can't cause a rapid reload loop.
+        const kioskWatchdog = (function () {
+            const RELOAD_DELAY = 30000;      // wait 30s before reloading
+            const MIN_RELOAD_GAP = 120000;   // at most one recovery reload per 2 min
+            let reloadScheduled = false;
+
+            function scheduleRecoveryReload(reason) {
+                if (reloadScheduled) return;
+                const lastReload = parseInt(localStorage.getItem('watchdogLastReload') || '0', 10);
+                if (Date.now() - lastReload < MIN_RELOAD_GAP) return;
+                reloadScheduled = true;
+                console.error('Watchdog: recovery reload in 30s -', reason);
+                setTimeout(() => {
+                    localStorage.setItem('watchdogLastReload', Date.now().toString());
+                    window.location.reload();
+                }, RELOAD_DELAY);
+            }
+
+            window.addEventListener('error', (e) => {
+                scheduleRecoveryReload(e.message || 'script error');
+            });
+
+            window.addEventListener('unhandledrejection', (e) => {
+                scheduleRecoveryReload(e.reason || 'unhandled rejection');
+            });
+
+            // If the globe never initialized (script missing, WebGL unavailable),
+            // there is no canvas 15s after load - recover.
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const canvas = document.querySelector('#cesiumContainer canvas');
+                    if (typeof Cesium === 'undefined' || !canvas) {
+                        scheduleRecoveryReload('globe failed to initialize');
+                    }
+                }, 15000);
+            });
+
+            return { scheduleRecoveryReload };
+        })();
+
         // Set Cesium Ion access token
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2ZmYxYzgzMi1jMjI0LTRiYWUtYjcyNS1jYTlkZWI4MThhNTEiLCJpZCI6MzIwMTI0LCJpYXQiOjE3NTMzMTg3NDd9.NJ7AlxH_emAHLiDuIA5Uv6khpP6gDHB_zEPTWABcLcM';
 
@@ -988,6 +1035,12 @@
                 automaticallyTrackDataSourceClocks: false,
                 shadows: true,
                 shouldAnimate: true
+            });
+
+            // If the render loop crashes (WebGL context loss on a long-running
+            // kiosk), Cesium stops rendering permanently - recover via watchdog.
+            viewer.scene.renderError.addEventListener(function (scene, error) {
+                kioskWatchdog.scheduleRecoveryReload('render error: ' + error);
             });
 
             // Configure atmosphere and lighting
