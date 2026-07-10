@@ -47,6 +47,13 @@
             box-sizing: border-box;
         }
 
+        /* Adaptive root font-size: scales with viewport so layout works at 100%
+           and 200% Windows display scaling on the 75" 4K panel.
+           At 1920px viewport ≈ 19px; at 3840px viewport ≈ 24px (capped). */
+        html {
+            font-size: clamp(18px, 1vw, 24px);
+        }
+
         body {
             font-family: 'Brandon Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             overflow: hidden;
@@ -68,12 +75,12 @@
 
         #instructions {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 30px;
+            left: 30px;
             background: rgba(0, 0, 0, 0.7);
-            padding: 15px 20px;
-            border-radius: 10px;
-            max-width: 280px;
+            padding: 24px 30px;
+            border-radius: 14px;
+            max-width: 420px;
             z-index: 1000;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -81,17 +88,17 @@
 
         #instructions h2 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
-            margin-bottom: 12px;
+            font-size: 28px;
+            margin-bottom: 16px;
             color: #4A90E2;
             font-weight: 600;
         }
 
         #instructions p {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 14px;
+            font-size: 22px;
             line-height: 1.6;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #ddd;
             font-weight: 400;
         }
@@ -103,27 +110,29 @@
             background: #4A90E2;
             color: white;
             border: none;
-            padding: 25px 50px;
-            border-radius: 35px;
+            padding: 30px 60px;
+            border-radius: 40px;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 28px;
+            font-size: 36px;
             font-weight: 600;
             cursor: pointer;
             z-index: 1000;
             transition: all 0.3s ease;
             box-shadow: 0 6px 25px rgba(74, 144, 226, 0.4);
-            min-width: 180px;
-            min-height: 80px;
+            min-width: 220px;
+            min-height: 96px;
             display: flex;
             align-items: center;
             justify-content: center;
             line-height: 1;
         }
 
-        #home-button:hover {
-            background: #357ABD;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.5);
+        @media (hover: hover) {
+            #home-button:hover {
+                background: #357ABD;
+                transform: translateY(-3px);
+                box-shadow: 0 8px 30px rgba(74, 144, 226, 0.5);
+            }
         }
 
         /* Featured Mission Banner - Right Side Panel */
@@ -133,8 +142,8 @@
             right: 30px;
             transform: translateY(-50%);
             background: linear-gradient(180deg, #4A90E2, #357ABD);
-            padding: 30px 35px;
-            border-radius: 20px;
+            padding: 38px 44px;
+            border-radius: 24px;
             z-index: 1000;
             display: none;
             box-shadow: 0 8px 30px rgba(74, 144, 226, 0.5);
@@ -142,12 +151,14 @@
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             text-align: center;
-            min-width: 220px;
+            min-width: 300px;
         }
 
-        #featured-banner:hover {
-            transform: translateY(-50%) scale(1.03);
-            box-shadow: 0 10px 35px rgba(74, 144, 226, 0.6);
+        @media (hover: hover) {
+            #featured-banner:hover {
+                transform: translateY(-50%) scale(1.03);
+                box-shadow: 0 10px 35px rgba(74, 144, 226, 0.6);
+            }
         }
 
         #featured-banner:active {
@@ -160,32 +171,32 @@
 
         #featured-banner h3 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
         #featured-banner p {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 26px;
+            font-size: 36px;
             font-weight: 600;
             color: white;
-            margin: 0 0 15px 0;
+            margin: 0 0 18px 0;
             line-height: 1.3;
         }
 
         #featured-banner::after {
             content: 'TAP TO VIEW';
             display: block;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.7);
-            margin-top: 15px;
+            margin-top: 18px;
             letter-spacing: 1px;
-            padding-top: 15px;
+            padding-top: 18px;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -244,10 +255,10 @@
             background: #4A90E2;
             color: white;
             border: none;
-            padding: 20px 40px;
-            border-radius: 35px;
+            padding: 28px 56px;
+            border-radius: 40px;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 24px;
+            font-size: 36px;
             font-weight: 600;
             cursor: pointer;
             z-index: 2001;
@@ -256,8 +267,10 @@
             box-shadow: 0 6px 25px rgba(74, 144, 226, 0.4);
         }
 
-        #back-button:hover {
-            background: #357ABD;
+        @media (hover: hover) {
+            #back-button:hover {
+                background: #357ABD;
+            }
         }
 
         #back-button:active {
@@ -287,9 +300,9 @@
             background: white;
         }
 
-        /* Scrollbar styling for content panel */
+        /* Scrollbar styling for content panel - wide for touch dragging */
         #content-display::-webkit-scrollbar {
-            width: 12px;
+            width: 24px;
         }
 
         #content-display::-webkit-scrollbar-track {
@@ -298,23 +311,26 @@
 
         #content-display::-webkit-scrollbar-thumb {
             background: #4A90E2;
-            border-radius: 6px;
+            border-radius: 12px;
+            border: 4px solid #f0f0f0;
         }
 
-        #content-display::-webkit-scrollbar-thumb:hover {
-            background: #357ABD;
+        @media (hover: hover) {
+            #content-display::-webkit-scrollbar-thumb:hover {
+                background: #357ABD;
+            }
         }
 
         /* Mission Preview Card */
         #mission-preview {
             position: absolute;
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 0;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 1500;
             display: none;
-            width: 320px;
+            width: 420px;
             overflow: hidden;
             transform: translate(-50%, -100%) translateY(-20px);
         }
@@ -338,7 +354,7 @@
         /* Missionary photo */
         #mission-preview .preview-photo {
             width: 100%;
-            height: 280px;
+            height: 320px;
             object-fit: cover;
             object-position: top;
             display: block;
@@ -346,58 +362,59 @@
 
         /* Preview content area */
         #mission-preview .preview-content {
-            padding: 20px;
+            padding: 28px;
         }
 
         #mission-preview .preview-name {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 24px;
+            font-size: 32px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             text-align: center;
+            line-height: 1.2;
         }
 
         #mission-preview .preview-location {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 16px;
+            font-size: 22px;
             color: #666;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         /* QR code section */
         #mission-preview .preview-qr-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 18px;
             background: #f5f5f5;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
         }
 
         #mission-preview .preview-qr {
-            width: 80px;
-            height: 80px;
+            width: 110px;
+            height: 110px;
             flex-shrink: 0;
             background: white;
-            padding: 5px;
-            border-radius: 8px;
+            padding: 6px;
+            border-radius: 10px;
         }
 
         #mission-preview .preview-qr-text {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 14px;
+            font-size: 18px;
             color: #666;
             line-height: 1.4;
         }
 
         #mission-preview .preview-qr-text strong {
             display: block;
-            font-size: 16px;
+            font-size: 22px;
             color: #333;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         /* View Info button */
@@ -405,12 +422,13 @@
             background: linear-gradient(135deg, #4A90E2, #357ABD);
             color: white;
             border: none;
-            padding: 16px 30px;
-            border-radius: 30px;
+            padding: 24px 40px;
+            border-radius: 36px;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
+            font-size: 24px;
             font-weight: 600;
             width: 100%;
+            min-height: 80px;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
@@ -424,10 +442,10 @@
         /* Close hint */
         #mission-preview .preview-hint {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 12px;
+            font-size: 18px;
             color: #999;
             text-align: center;
-            margin-top: 12px;
+            margin-top: 16px;
         }
 
         .loading {
@@ -458,9 +476,9 @@
         }
 
         .logo {
-            width: 150px;
+            width: 220px;
             height: auto;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         /* Hide Cesium UI elements for kiosk mode */
@@ -487,26 +505,26 @@
         /* Mission Legend - Bottom Center Horizontal */
         #mission-legend {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
-            padding: 12px 25px;
-            border-radius: 10px;
+            padding: 18px 36px;
+            border-radius: 14px;
             z-index: 1000;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 36px;
         }
 
         #mission-legend h3 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 16px;
+            font-size: 22px;
             color: #fff;
             font-weight: 600;
-            margin-right: 10px;
+            margin-right: 14px;
         }
 
         .legend-item {
@@ -516,9 +534,9 @@
         }
 
         .legend-pin {
-            width: 24px;
-            height: 32px;
-            margin-right: 8px;
+            width: 34px;
+            height: 44px;
+            margin-right: 12px;
             position: relative;
         }
 
@@ -534,21 +552,21 @@
         }
 
         .legend-pin img {
-            width: 16px;
-            height: 16px;
+            width: 22px;
+            height: 22px;
             transform: rotate(45deg);
         }
 
         .legend-label {
             color: #ddd;
-            font-size: 14px;
+            font-size: 22px;
             font-weight: 400;
         }
 
         .legend-count {
             color: #4A90E2;
             font-weight: 600;
-            margin-left: 5px;
+            margin-left: 6px;
         }
 
         /* Touch Feedback - Simple Circle */
@@ -578,13 +596,12 @@
             }
         }
 
-        /* Enhanced Button States for 65" Touch */
+        /* Enhanced Button States for 75" Touch */
         #back-button {
-            position: relative;
             overflow: hidden;
             transition: all 0.15s ease;
-            min-width: 120px;
-            min-height: 60px;
+            min-width: 220px;
+            min-height: 100px;
         }
 
         #home-button {
@@ -673,11 +690,11 @@
         }
 #photo-banner {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 380px;
-    height: 240px;
-    border-radius: 12px;
+    top: 30px;
+    right: 30px;
+    width: 480px;
+    height: 300px;
+    border-radius: 16px;
     overflow: hidden;
     cursor: pointer;
     z-index: 50;
@@ -686,8 +703,10 @@
     transition: transform 0.3s ease;
 }
 
-#photo-banner:hover {
-    transform: scale(1.02);
+@media (hover: hover) {
+    #photo-banner:hover {
+        transform: scale(1.02);
+    }
 }
 
 #photo-banner:active {
@@ -709,60 +728,68 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 10px 15px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    padding: 18px 24px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
     z-index: 2;
 }
 
 #photo-banner .banner-title {
-    font-size: 14px;
+    font-size: 22px;
     font-weight: 600;
     color: #fff;
 }
 
 #photo-banner .banner-caption {
-    font-size: 12px;
-    color: rgba(255,255,255,0.7);
-    margin-top: 2px;
+    font-size: 18px;
+    color: rgba(255,255,255,0.85);
+    margin-top: 4px;
 }
 
 #photos-button {
     position: fixed;
-    bottom: 20px;
-    left: 120px;
-    background: rgba(0,0,0,0.6);
+    top: 30px;
+    left: 30px;
+    background: rgba(0,0,0,0.7);
     color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 10px 15px;
-    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 18px 28px;
+    border-radius: 12px;
     font-family: 'Brandon Grotesque', sans-serif;
-    font-size: 14px;
+    font-size: 22px;
+    font-weight: 500;
+    min-height: 64px;
     cursor: pointer;
     z-index: 100;
     display: none;
     transition: all 0.3s ease;
 }
 
-#photos-button:hover {
-    background: rgba(74, 144, 226, 0.6);
+@media (hover: hover) {
+    #photos-button:hover {
+        background: rgba(74, 144, 226, 0.6);
+    }
 }
 
 #mission-preview .preview-photos-btn {
-    background: rgba(74, 144, 226, 0.2);
+    background: rgba(74, 144, 226, 0.15);
     color: #4A90E2;
-    border: 1px solid #4A90E2;
-    padding: 8px 16px;
-    border-radius: 5px;
+    border: 2px solid #4A90E2;
+    padding: 16px 24px;
+    border-radius: 12px;
     font-family: 'Brandon Grotesque', sans-serif;
-    font-size: 13px;
+    font-size: 20px;
+    font-weight: 600;
+    min-height: 64px;
     cursor: pointer;
-    margin-top: 8px;
+    margin-top: 12px;
     width: 100%;
     transition: all 0.3s ease;
 }
 
-#mission-preview .preview-photos-btn:hover {
-    background: rgba(74, 144, 226, 0.3);
+@media (hover: hover) {
+    #mission-preview .preview-photos-btn:hover {
+        background: rgba(74, 144, 226, 0.3);
+    }
 }
 
     </style>
@@ -1236,7 +1263,7 @@
 
                 // Update QR code
                 const qrImg = document.getElementById('preview-qr');
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(mission.url)}`;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(mission.url)}`;
 
                 // Check for linked photo collections
                 const photosBtn = document.getElementById('preview-photos-btn');
@@ -1261,13 +1288,13 @@
                 let top = screenPosition.y;
 
                 // Clamp horizontal position
-                const cardWidth = 320;
+                const cardWidth = 420;
                 const minLeft = cardWidth / 2 + 20;
                 const maxLeft = window.innerWidth - cardWidth / 2 - 20;
                 left = Math.max(minLeft, Math.min(maxLeft, left));
 
-                // Ensure vertical position has room for card (card is ~450px tall + 20px arrow)
-                const minTop = 560;
+                // Ensure vertical position has room for card (card is ~770px tall + 20px arrow)
+                const minTop = 800;
                 top = Math.max(minTop, top);
 
                 previewCard.style.left = left + 'px';
