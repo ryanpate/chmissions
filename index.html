@@ -1243,8 +1243,12 @@
             let currentPreviewEntity = null;
             const previewCard = document.getElementById('mission-preview');
 
+            // Photos API data, fetched once at startup by loadPhotoBanner().
+            // Preview card checks this synchronously so taps never wait on the network.
+            let cachedPhotosData = null;
+
             // Show preview card at screen position
-            async function showPreviewCard(mission, entity, screenPosition) {
+            function showPreviewCard(mission, entity, screenPosition) {
                 currentPreviewMission = mission;
                 currentPreviewEntity = entity;
 
@@ -1265,14 +1269,9 @@
                 const qrImg = document.getElementById('preview-qr');
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(mission.url)}`;
 
-                // Check for linked photo collections
+                // Check for linked photo collections (cached at startup - no network call on tap)
                 const photosBtn = document.getElementById('preview-photos-btn');
-                let photosDataForPreview;
-                try {
-                    const resp = await fetch('https://photos-api-production.up.railway.app/api/collections');
-                    if (resp.ok) photosDataForPreview = await resp.json();
-                } catch (e) {}
-                if (photosDataForPreview && photosDataForPreview.collections.some(c => c.mission === mission.name)) {
+                if (cachedPhotosData && cachedPhotosData.collections.some(c => c.mission === mission.name)) {
                     photosBtn.style.display = 'block';
                     photosBtn.onclick = (e) => {
                         e.stopPropagation();
@@ -1660,6 +1659,9 @@
                 } catch (e) {}
 
                 if (!photosData) return;
+
+                // Cache for the preview card so pin taps never wait on the network
+                cachedPhotosData = photosData;
 
                 if (photosData.collections.length > 0) {
                     document.getElementById('photos-button').style.display = 'block';
