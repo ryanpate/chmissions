@@ -607,13 +607,32 @@
             font-size: 22px;
             color: #fff;
             font-weight: 600;
+        }
+
+        .legend-title {
             margin-right: 14px;
+        }
+
+        .legend-tap-hint {
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 16px;
+            color: #4A90E2;
+            margin-top: 2px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
             font-family: 'Brandon Grotesque', sans-serif;
+            cursor: pointer;
+            padding: 10px 14px;
+            border-radius: 10px;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        .legend-item:active {
+            background: rgba(74, 144, 226, 0.35);
+            transform: scale(0.97);
         }
 
         .legend-pin {
@@ -937,8 +956,11 @@
     </div>
 
     <div id="mission-legend">
-        <h3>Missions</h3>
-        <div class="legend-item">
+        <div class="legend-title">
+            <h3>Missions</h3>
+            <div class="legend-tap-hint">Tap to tour</div>
+        </div>
+        <div class="legend-item" data-type="local">
             <div class="legend-pin">
                 <div class="legend-pin-shape">
                     <img src="assets/logo_local.png" alt="Local">
@@ -946,7 +968,7 @@
             </div>
             <span class="legend-label">Local <span class="legend-count" id="local-count">(0)</span></span>
         </div>
-        <div class="legend-item">
+        <div class="legend-item" data-type="regional">
             <div class="legend-pin">
                 <div class="legend-pin-shape">
                     <img src="assets/logo_regional.png" alt="Regional">
@@ -954,7 +976,7 @@
             </div>
             <span class="legend-label">Regional <span class="legend-count" id="regional-count">(0)</span></span>
         </div>
-        <div class="legend-item">
+        <div class="legend-item" data-type="global">
             <div class="legend-pin">
                 <div class="legend-pin-shape">
                     <img src="assets/logo_global.png" alt="Global">
@@ -1800,6 +1822,48 @@
                     }
                 });
             }
+
+            // Legend tour: tapping a legend item flies to the next mission of
+            // that type and opens its preview card.
+            const tourIndex = { local: 0, regional: 0, global: 0 };
+
+            function tourNextMission(type) {
+                const ofType = missions.filter(m => (m.type || 'local') === type);
+                if (ofType.length === 0) return;
+
+                const mission = ofType[tourIndex[type] % ofType.length];
+                tourIndex[type]++;
+
+                hidePreviewCard();
+                hideMissionChooser();
+
+                const entity = viewer.entities.values.find(en =>
+                    en.properties && en.properties.mission &&
+                    en.properties.mission.getValue().name === mission.name
+                );
+                if (!entity) return;
+
+                const zoomDistance = type === 'local' ? 50000 :
+                    type === 'regional' ? 300000 : 1000000;
+
+                viewer.flyTo(entity, {
+                    duration: 2.0,
+                    offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, zoomDistance)
+                }).then(function (finished) {
+                    if (!finished) return; // flight interrupted by the user
+                    const windowPos = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+                        viewer.scene,
+                        entity.position.getValue(viewer.clock.currentTime)
+                    );
+                    if (windowPos) {
+                        showPreviewCard(mission, entity, windowPos);
+                    }
+                });
+            }
+
+            document.querySelectorAll('#mission-legend .legend-item').forEach(item => {
+                item.addEventListener('click', () => tourNextMission(item.dataset.type));
+            });
 
             // Inactivity timer
             let inactivityTimer;
