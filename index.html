@@ -1044,7 +1044,7 @@
                 }
 
                 // Fall back to featured.json if localStorage has never been set
-                const response = await fetch('data/featured.json');
+                const response = await fetch('data/featured.json', { cache: 'no-cache' });
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.name) {
@@ -1061,7 +1061,7 @@
         async function loadMissions() {
             try {
                 console.log('Attempting to load missions from data/missions.json...');
-                const response = await fetch('data/missions.json');
+                const response = await fetch('data/missions.json', { cache: 'no-cache' });
                 console.log('Fetch response:', response.status, response.statusText);
 
                 if (!response.ok) {
@@ -1941,10 +1941,12 @@
 
             loadPhotoBanner();
 
-            // Reset timer on any interaction
+            // Reset timer on any interaction (touchstart included so touch
+            // drags don't get yanked back home mid-exploration)
             document.addEventListener('click', resetInactivityTimer);
             document.addEventListener('mousemove', resetInactivityTimer);
             document.addEventListener('wheel', resetInactivityTimer);
+            document.addEventListener('touchstart', resetInactivityTimer, { passive: true });
 
             // Initial timer
             resetInactivityTimer();
@@ -1970,7 +1972,7 @@
             let isRotating = false;
             let rotationStartTimer = null;
             let lastRotationTime = Date.now();
-            const ROTATION_SPEED = 0.05; // Degrees per frame (very slow)
+            const ROTATION_SPEED = 3; // Degrees per second (very slow)
             const IDLE_BEFORE_ROTATE = 30000; // 30 seconds before starting rotation
 
             // Start globe rotation
@@ -2016,13 +2018,15 @@
                     return;
                 }
 
-                // Calculate smooth rotation based on elapsed time
+                // Calculate smooth rotation based on elapsed time so speed is
+                // the same regardless of frame rate (clamped in case the tab
+                // was suspended between frames)
                 const now = Date.now();
-                const deltaTime = (now - lastRotationTime) / 1000; // seconds
+                const deltaTime = Math.min((now - lastRotationTime) / 1000, 0.1);
                 lastRotationTime = now;
 
                 // Rotate camera around the globe (heading change)
-                viewer.camera.rotateRight(Cesium.Math.toRadians(ROTATION_SPEED));
+                viewer.camera.rotateRight(Cesium.Math.toRadians(ROTATION_SPEED * deltaTime));
             });
 
             // Stop rotation and reschedule on any interaction
@@ -2051,35 +2055,47 @@
             const lastRefresh = localStorage.getItem('lastRefreshTime');
             const now = Date.now();
             const twelveHours = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
-            
+            const idleBeforeRefresh = 5 * 60 * 1000; // wait for 5 min of inactivity
+
+            // Track the last user interaction so the refresh never reloads
+            // the page out from under someone mid-use
+            let lastInteractionTime = Date.now();
+            ['click', 'touchstart', 'mousemove', 'wheel'].forEach(evt =>
+                document.addEventListener(evt, () => { lastInteractionTime = Date.now(); }, { passive: true }));
+
+            function reloadWhenIdle() {
+                if (Date.now() - lastInteractionTime >= idleBeforeRefresh) {
+                    localStorage.setItem('lastRefreshTime', Date.now().toString());
+                    window.location.reload(true); // Force reload from server
+                } else {
+                    // Someone is using the kiosk - check again in a minute
+                    setTimeout(reloadWhenIdle, 60000);
+                }
+            }
+
             if (!lastRefresh) {
                 // First time load, store the current time
                 localStorage.setItem('lastRefreshTime', now.toString());
             } else {
                 const timeSinceRefresh = now - parseInt(lastRefresh);
-                
+
                 // If it's been more than 12 hours, refresh the page
+                // (we just loaded, so nobody is mid-interaction)
                 if (timeSinceRefresh >= twelveHours) {
                     localStorage.setItem('lastRefreshTime', now.toString());
                     window.location.reload(true); // Force reload from server
                     return; // Stop execution since page is reloading
                 }
-                
+
                 // Calculate time until next refresh
                 const timeUntilRefresh = twelveHours - timeSinceRefresh;
-                
+
                 // Set timeout for the remaining time
-                setTimeout(() => {
-                    localStorage.setItem('lastRefreshTime', Date.now().toString());
-                    window.location.reload(true);
-                }, timeUntilRefresh);
+                setTimeout(reloadWhenIdle, timeUntilRefresh);
             }
-            
+
             // Also set a recurring 12-hour interval as a backup
-            setInterval(() => {
-                localStorage.setItem('lastRefreshTime', Date.now().toString());
-                window.location.reload(true);
-            }, twelveHours);
+            setInterval(reloadWhenIdle, twelveHours);
         }
         
         // Setup auto-refresh
