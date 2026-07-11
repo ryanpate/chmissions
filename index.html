@@ -1690,9 +1690,11 @@
                 resetInactivityTimer();
             });
 
-            // Get location name from coordinates (approximate)
+            // Get location name for a mission.
+            // Prefers the "location" field in missions.json; the map below is
+            // a fallback for entries that predate that field.
             function getLocationName(mission) {
-                // Map of known mission locations
+                if (mission.location) return mission.location;
                 const locations = {
                     'Nate and Insa Brewer': 'Vienna, Austria',
                     'The James Project': 'Springfield, IL',

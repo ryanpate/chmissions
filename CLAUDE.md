@@ -42,7 +42,8 @@ CHMissions/
   "lng": 0.0,
   "url": "https://cherryhillsfamily.org/missions/TYPE/profile/SLUG",
   "localFile": "partner-name.html",
-  "type": "local|regional|global"
+  "type": "local|regional|global",
+  "location": "City, Country"
 }
 ```
 
