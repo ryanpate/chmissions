@@ -30,6 +30,68 @@
             font-family: 'Brandon Grotesque', sans-serif;
         }
         
+        /* Attract loop: mission photos crossfading behind the content.
+           Hidden until missions.json and a first photo load, so the
+           static screensaver is the offline fallback. */
+        .photo-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+
+        .photo-layer img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .photo-scrim {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 30, 0.6);
+            z-index: 0;
+            display: none;
+        }
+
+        .mission-caption {
+            position: fixed;
+            bottom: 60px;
+            left: 70px;
+            z-index: 1;
+            display: none;
+        }
+
+        .mission-caption .caption-name {
+            font-size: 46px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+        }
+
+        .mission-caption .caption-location {
+            font-size: 30px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 8px;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Keep the main content above the photo layers */
+        .logo-container,
+        .touch-text,
+        .subtitle {
+            position: relative;
+            z-index: 1;
+        }
+
         .logo-container {
             animation: float 6s ease-in-out infinite;
             margin-bottom: 60px;
@@ -190,6 +252,15 @@
 </head>
 <body>
     <div class="bg-animation"></div>
+    <div class="photo-layer">
+        <img id="attract-img-1" src="" alt="">
+        <img id="attract-img-2" src="" alt="">
+    </div>
+    <div class="photo-scrim" id="photo-scrim"></div>
+    <div class="mission-caption" id="mission-caption">
+        <div class="caption-name" id="caption-name"></div>
+        <div class="caption-location" id="caption-location"></div>
+    </div>
     <div class="logo-container">
         <img src="assets/logo.png" alt="Cherry Hills" class="logo" onerror="this.style.border='2px solid red'">
     </div>
@@ -197,6 +268,67 @@
     <p class="subtitle">Explore Our Global Missions</p>
 
     <script>
+        // ============================================
+        // ATTRACT LOOP - crossfade mission photos
+        // ============================================
+        // Loads missions.json and cycles photos with name/location captions.
+        // If the fetch or images fail (offline), the static logo screensaver
+        // remains untouched.
+        async function initAttractLoop() {
+            let missions = [];
+            try {
+                const resp = await fetch('data/missions.json', { cache: 'no-cache' });
+                if (resp.ok) missions = await resp.json();
+            } catch (e) {
+                return;
+            }
+            if (!Array.isArray(missions) || missions.length === 0) return;
+
+            document.querySelector('.subtitle').textContent =
+                `Explore Our ${missions.length} Mission Partners Around the World`;
+
+            const withPhotos = missions.filter(m => m.image);
+            if (withPhotos.length === 0) return;
+
+            // Shuffle so the loop starts somewhere different each time
+            for (let i = withPhotos.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
+            }
+
+            const img1 = document.getElementById('attract-img-1');
+            const img2 = document.getElementById('attract-img-2');
+            let index = 0;
+            let activeImg = 0; // 0 = none shown yet
+
+            function showPhoto(i) {
+                const m = withPhotos[i];
+                const next = activeImg === 1 ? img2 : img1;
+                const curr = activeImg === 1 ? img1 : img2;
+                next.onload = function () {
+                    next.style.opacity = 1;
+                    if (curr !== next) curr.style.opacity = 0;
+                    activeImg = next === img1 ? 1 : 2;
+                    document.getElementById('photo-scrim').style.display = 'block';
+                    const caption = document.getElementById('mission-caption');
+                    caption.style.display = 'block';
+                    document.getElementById('caption-name').textContent = m.name;
+                    document.getElementById('caption-location').textContent = m.location || '';
+                };
+                // On failure do nothing - the next tick tries the next photo
+                next.onerror = function () {};
+                next.src = m.image;
+            }
+
+            showPhoto(0);
+            setInterval(function () {
+                index = (index + 1) % withPhotos.length;
+                showPhoto(index);
+            }, 8000);
+        }
+
+        initAttractLoop();
+
         // Touch feedback for screensaver
         function createTouchFeedback(x, y) {
             // Create ripple
