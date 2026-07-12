@@ -1155,7 +1155,13 @@
                 scene3DOnly: true,
                 automaticallyTrackDataSourceClocks: false,
                 shadows: true,
-                shouldAnimate: true
+                shouldAnimate: true,
+                // Render at native device resolution. The default (true)
+                // renders at CSS resolution, which the kiosk's ~300% Windows
+                // scaling stretches 3x onto the 4K panel - pixelated globe
+                // and pins. If rotation ever stutters on the kiosk PC, soften
+                // with viewer.resolutionScale = 0.75 instead of reverting.
+                useBrowserRecommendedResolution: false
             });
 
             // If the render loop crashes (WebGL context loss on a long-running
@@ -1252,13 +1258,14 @@
             document.getElementById('global-count').textContent = `(${missionCounts.global})`;
 
             // Create custom pin billboard with actual logo.
-            // Drawn at 3x (144x192) so pins stay sharp at 4K display sizes;
-            // the billboard scale below compensates for the larger canvas.
+            // Drawn at 4x (192x256) so pins stay sharp when the billboard is
+            // rendered at native 4K device resolution; the billboard scale
+            // below compensates for the larger canvas.
             const pinCanvas = document.createElement('canvas');
-            pinCanvas.width = 144;
-            pinCanvas.height = 192;
+            pinCanvas.width = 192;
+            pinCanvas.height = 256;
             const ctx = pinCanvas.getContext('2d');
-            ctx.scale(3, 3);
+            ctx.scale(4, 4);
 
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
