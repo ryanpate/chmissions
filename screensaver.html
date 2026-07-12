@@ -56,6 +56,9 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* Anchor the crop to the top of the photo - faces are usually in
+               the upper portion, so crop the bottom instead of the top. */
+            object-position: center top;
             opacity: 0;
             transition: opacity 1.5s ease;
         }
