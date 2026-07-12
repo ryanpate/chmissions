@@ -48,13 +48,13 @@
             box-sizing: border-box;
         }
 
-        /* Proportional root font-size: 1rem = 10px at a 3840px-wide viewport.
+        /* Proportional root font-size: 1rem ≈ 11px at a 3840px-wide viewport.
            All UI sizes below are in rem, so the interface occupies the same
            fraction of the 75" 4K panel no matter what Windows display scaling
            or output resolution the kiosk PC uses. To make the whole UI bigger
-           or smaller, adjust the 384 divisor (smaller divisor = bigger UI). */
+           or smaller, adjust the 350 divisor (smaller divisor = bigger UI). */
         html {
-            font-size: calc(100vw / 384);
+            font-size: calc(100vw / 350);
         }
 
         body {
@@ -998,12 +998,12 @@
     </div>
 
     <script>
-        // Convert a 4K design pixel value to CSS pixels for the current
-        // viewport (matches the CSS rule: 1rem = 10px at a 3840px viewport).
-        // Keeps JS-sized things (pins, card positioning, tap targets) at the
-        // same physical size on the 75" panel at any Windows display scaling.
+        // Convert a design pixel value (1 design px = 0.1rem) to CSS pixels,
+        // based on the actual root font-size so JS-sized things (pins, card
+        // positioning, tap targets) scale together with the CSS rem sizes -
+        // including when the html font-size divisor above is tuned.
         function px4k(n) {
-            return n * (window.innerWidth / 3840);
+            return (n / 10) * parseFloat(getComputedStyle(document.documentElement).fontSize);
         }
 
         // ============================================
