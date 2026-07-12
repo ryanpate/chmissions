@@ -48,11 +48,13 @@
             box-sizing: border-box;
         }
 
-        /* Adaptive root font-size: scales with viewport so layout works at 100%
-           and 200% Windows display scaling on the 75" 4K panel.
-           At 1920px viewport ≈ 19px; at 3840px viewport ≈ 24px (capped). */
+        /* Proportional root font-size: 1rem = 10px at a 3840px-wide viewport.
+           All UI sizes below are in rem, so the interface occupies the same
+           fraction of the 75" 4K panel no matter what Windows display scaling
+           or output resolution the kiosk PC uses. To make the whole UI bigger
+           or smaller, adjust the 384 divisor (smaller divisor = bigger UI). */
         html {
-            font-size: clamp(18px, 1vw, 24px);
+            font-size: calc(100vw / 384);
         }
 
         body {
@@ -76,52 +78,52 @@
 
         #instructions {
             position: absolute;
-            bottom: 30px;
-            left: 30px;
+            bottom: 3rem;
+            left: 3rem;
             background: rgba(0, 0, 0, 0.7);
-            padding: 24px 30px;
-            border-radius: 14px;
-            max-width: 420px;
+            padding: 2.4rem 3rem;
+            border-radius: 1.4rem;
+            max-width: 42rem;
             z-index: 1000;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(1rem);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #instructions h2 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 28px;
-            margin-bottom: 16px;
+            font-size: 2.8rem;
+            margin-bottom: 1.6rem;
             color: #4A90E2;
             font-weight: 600;
         }
 
         #instructions p {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 22px;
+            font-size: 2.2rem;
             line-height: 1.6;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
             color: #ddd;
             font-weight: 400;
         }
 
         #home-button {
             position: absolute;
-            bottom: 30px;
-            right: 30px;
+            bottom: 3rem;
+            right: 3rem;
             background: #4A90E2;
             color: white;
             border: none;
-            padding: 30px 60px;
-            border-radius: 40px;
+            padding: 3rem 6rem;
+            border-radius: 4rem;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 36px;
+            font-size: 3.6rem;
             font-weight: 600;
             cursor: pointer;
             z-index: 1000;
             transition: all 0.3s ease;
-            box-shadow: 0 6px 25px rgba(74, 144, 226, 0.4);
-            min-width: 220px;
-            min-height: 96px;
+            box-shadow: 0 0.6rem 2.5rem rgba(74, 144, 226, 0.4);
+            min-width: 22rem;
+            min-height: 9.6rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -131,8 +133,8 @@
         @media (hover: hover) {
             #home-button:hover {
                 background: #357ABD;
-                transform: translateY(-3px);
-                box-shadow: 0 8px 30px rgba(74, 144, 226, 0.5);
+                transform: translateY(-0.3rem);
+                box-shadow: 0 0.8rem 3rem rgba(74, 144, 226, 0.5);
             }
         }
 
@@ -140,25 +142,25 @@
         #featured-banner {
             position: absolute;
             top: 50%;
-            right: 30px;
+            right: 3rem;
             transform: translateY(-50%);
             background: linear-gradient(180deg, #4A90E2, #357ABD);
-            padding: 38px 44px;
-            border-radius: 24px;
+            padding: 3.8rem 4.4rem;
+            border-radius: 2.4rem;
             z-index: 1000;
             display: none;
-            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.5);
+            box-shadow: 0 0.8rem 3rem rgba(74, 144, 226, 0.5);
             animation: slideIn 0.5s ease-out;
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             text-align: center;
-            min-width: 300px;
+            min-width: 30rem;
         }
 
         @media (hover: hover) {
             #featured-banner:hover {
                 transform: translateY(-50%) scale(1.03);
-                box-shadow: 0 10px 35px rgba(74, 144, 226, 0.6);
+                box-shadow: 0 1rem 3.5rem rgba(74, 144, 226, 0.6);
             }
         }
 
@@ -172,39 +174,39 @@
 
         #featured-banner h3 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 22px;
+            font-size: 2.2rem;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 14px;
+            margin-bottom: 1.4rem;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
         #featured-banner p {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 36px;
+            font-size: 3.6rem;
             font-weight: 600;
             color: white;
-            margin: 0 0 18px 0;
+            margin: 0 0 1.8rem 0;
             line-height: 1.3;
         }
 
         #featured-banner::after {
             content: 'TAP TO VIEW';
             display: block;
-            font-size: 20px;
+            font-size: 2rem;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.7);
-            margin-top: 18px;
+            margin-top: 1.8rem;
             letter-spacing: 1px;
-            padding-top: 18px;
+            padding-top: 1.8rem;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(-50%) translateX(30px);
+                transform: translateY(-50%) translateX(3rem);
             }
 
             to {
@@ -251,21 +253,21 @@
         /* Back button fixed at bottom of content panel */
         #back-button {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 3rem;
+            right: 3rem;
             background: #4A90E2;
             color: white;
             border: none;
-            padding: 28px 56px;
-            border-radius: 40px;
+            padding: 2.8rem 5.6rem;
+            border-radius: 4rem;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 36px;
+            font-size: 3.6rem;
             font-weight: 600;
             cursor: pointer;
             z-index: 2001;
             transition: all 0.2s ease;
             display: none;
-            box-shadow: 0 6px 25px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 0.6rem 2.5rem rgba(74, 144, 226, 0.4);
         }
 
         @media (hover: hover) {
@@ -303,7 +305,7 @@
 
         /* Scrollbar styling for content panel - wide for touch dragging */
         #content-display::-webkit-scrollbar {
-            width: 24px;
+            width: 2.4rem;
         }
 
         #content-display::-webkit-scrollbar-track {
@@ -312,8 +314,8 @@
 
         #content-display::-webkit-scrollbar-thumb {
             background: #4A90E2;
-            border-radius: 12px;
-            border: 4px solid #f0f0f0;
+            border-radius: 1.2rem;
+            border: 0.4rem solid #f0f0f0;
         }
 
         @media (hover: hover) {
@@ -326,14 +328,14 @@
         #mission-preview {
             position: absolute;
             background: white;
-            border-radius: 24px;
+            border-radius: 2.4rem;
             padding: 0;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.3);
             z-index: 1500;
             display: none;
-            width: 420px;
+            width: 42rem;
             overflow: hidden;
-            transform: translate(-50%, -100%) translateY(-20px);
+            transform: translate(-50%, -100%) translateY(-2rem);
         }
 
         #mission-preview.active {
@@ -344,18 +346,18 @@
         #mission-preview::after {
             content: '';
             position: absolute;
-            bottom: -15px;
+            bottom: -1.5rem;
             left: 50%;
             transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 15px solid white;
+            border-left: 1.5rem solid transparent;
+            border-right: 1.5rem solid transparent;
+            border-top: 1.5rem solid white;
         }
 
         /* Missionary photo */
         #mission-preview .preview-photo {
             width: 100%;
-            height: 320px;
+            height: 32rem;
             object-fit: cover;
             object-position: top;
             display: block;
@@ -363,59 +365,59 @@
 
         /* Preview content area */
         #mission-preview .preview-content {
-            padding: 28px;
+            padding: 2.8rem;
         }
 
         #mission-preview .preview-name {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 32px;
+            font-size: 3.2rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 6px;
+            margin-bottom: 0.6rem;
             text-align: center;
             line-height: 1.2;
         }
 
         #mission-preview .preview-location {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 22px;
+            font-size: 2.2rem;
             color: #666;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
         }
 
         /* QR code section */
         #mission-preview .preview-qr-section {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 1.8rem;
             background: #f5f5f5;
-            padding: 20px;
-            border-radius: 14px;
-            margin-bottom: 20px;
+            padding: 2rem;
+            border-radius: 1.4rem;
+            margin-bottom: 2rem;
         }
 
         #mission-preview .preview-qr {
-            width: 110px;
-            height: 110px;
+            width: 11rem;
+            height: 11rem;
             flex-shrink: 0;
             background: white;
-            padding: 6px;
-            border-radius: 10px;
+            padding: 0.6rem;
+            border-radius: 1rem;
         }
 
         #mission-preview .preview-qr-text {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
+            font-size: 1.8rem;
             color: #666;
             line-height: 1.4;
         }
 
         #mission-preview .preview-qr-text strong {
             display: block;
-            font-size: 22px;
+            font-size: 2.2rem;
             color: #333;
-            margin-bottom: 4px;
+            margin-bottom: 0.4rem;
         }
 
         /* View Info button */
@@ -423,16 +425,16 @@
             background: linear-gradient(135deg, #4A90E2, #357ABD);
             color: white;
             border: none;
-            padding: 24px 40px;
-            border-radius: 36px;
+            padding: 2.4rem 4rem;
+            border-radius: 3.6rem;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 24px;
+            font-size: 2.4rem;
             font-weight: 600;
             width: 100%;
-            min-height: 80px;
+            min-height: 8rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            box-shadow: 0 0.4rem 1.5rem rgba(74, 144, 226, 0.3);
         }
 
         #mission-preview .preview-cta:active {
@@ -443,23 +445,23 @@
         /* Close hint */
         #mission-preview .preview-hint {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
+            font-size: 1.8rem;
             color: #999;
             text-align: center;
-            margin-top: 16px;
+            margin-top: 1.6rem;
         }
 
         /* Mission Chooser - shown when a tap hits overlapping pins */
         #mission-chooser {
             position: absolute;
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border-radius: 2.4rem;
+            box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.3);
             z-index: 1500;
             display: none;
-            width: 480px;
+            width: 48rem;
             overflow: hidden;
-            transform: translate(-50%, -100%) translateY(-20px);
+            transform: translate(-50%, -100%) translateY(-2rem);
         }
 
         #mission-chooser.active {
@@ -469,21 +471,21 @@
         #mission-chooser::after {
             content: '';
             position: absolute;
-            bottom: -15px;
+            bottom: -1.5rem;
             left: 50%;
             transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 15px solid white;
+            border-left: 1.5rem solid transparent;
+            border-right: 1.5rem solid transparent;
+            border-top: 1.5rem solid white;
         }
 
         #mission-chooser .chooser-title {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 24px;
+            font-size: 2.4rem;
             font-weight: 600;
             color: #333;
             text-align: center;
-            padding: 24px 24px 16px;
+            padding: 2.4rem 2.4rem 1.6rem;
         }
 
         #mission-chooser .chooser-list {
@@ -494,8 +496,8 @@
         #mission-chooser .chooser-item {
             display: block;
             width: 100%;
-            padding: 20px 28px;
-            min-height: 88px;
+            padding: 2rem 2.8rem;
+            min-height: 8.8rem;
             border: none;
             border-top: 1px solid #eee;
             background: none;
@@ -510,24 +512,24 @@
 
         #mission-chooser .chooser-item-name {
             display: block;
-            font-size: 26px;
+            font-size: 2.6rem;
             font-weight: 600;
             color: #333;
         }
 
         #mission-chooser .chooser-item-location {
             display: block;
-            font-size: 20px;
+            font-size: 2rem;
             color: #666;
-            margin-top: 4px;
+            margin-top: 0.4rem;
         }
 
         #mission-chooser .chooser-hint {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 18px;
+            font-size: 1.8rem;
             color: #999;
             text-align: center;
-            padding: 16px;
+            padding: 1.6rem;
             border-top: 1px solid #eee;
         }
 
@@ -537,18 +539,18 @@
             justify-content: center;
             height: 100%;
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 28px;
+            font-size: 2.8rem;
             font-weight: 500;
             color: #4A90E2;
             flex-direction: column;
-            gap: 20px;
+            gap: 2rem;
         }
 
         .loading::before {
             content: '';
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e0e0e0;
+            width: 5rem;
+            height: 5rem;
+            border: 0.4rem solid #e0e0e0;
             border-top-color: #4A90E2;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -559,9 +561,9 @@
         }
 
         .logo {
-            width: 220px;
+            width: 22rem;
             height: auto;
-            margin-bottom: 18px;
+            margin-bottom: 1.8rem;
         }
 
         /* Hide Cesium UI elements for kiosk mode */
@@ -588,34 +590,34 @@
         /* Mission Legend - Bottom Center Horizontal */
         #mission-legend {
             position: absolute;
-            bottom: 30px;
+            bottom: 3rem;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
-            padding: 18px 36px;
-            border-radius: 14px;
+            padding: 1.8rem 3.6rem;
+            border-radius: 1.4rem;
             z-index: 1000;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(1rem);
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            gap: 36px;
+            gap: 3.6rem;
         }
 
         #mission-legend h3 {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 22px;
+            font-size: 2.2rem;
             color: #fff;
             font-weight: 600;
         }
 
         .legend-title {
-            margin-right: 14px;
+            margin-right: 1.4rem;
         }
 
         .legend-tap-hint {
             font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 16px;
+            font-size: 1.6rem;
             color: #4A90E2;
             margin-top: 2px;
         }
@@ -625,8 +627,8 @@
             align-items: center;
             font-family: 'Brandon Grotesque', sans-serif;
             cursor: pointer;
-            padding: 10px 14px;
-            border-radius: 10px;
+            padding: 1rem 1.4rem;
+            border-radius: 1rem;
             transition: background 0.2s ease, transform 0.1s ease;
         }
 
@@ -636,9 +638,9 @@
         }
 
         .legend-pin {
-            width: 34px;
-            height: 44px;
-            margin-right: 12px;
+            width: 3.4rem;
+            height: 4.4rem;
+            margin-right: 1.2rem;
             position: relative;
         }
 
@@ -654,21 +656,21 @@
         }
 
         .legend-pin img {
-            width: 22px;
-            height: 22px;
+            width: 2.2rem;
+            height: 2.2rem;
             transform: rotate(45deg);
         }
 
         .legend-label {
             color: #ddd;
-            font-size: 22px;
+            font-size: 2.2rem;
             font-weight: 400;
         }
 
         .legend-count {
             color: #4A90E2;
             font-weight: 600;
-            margin-left: 6px;
+            margin-left: 0.6rem;
         }
 
         /* Touch Feedback - Simple Circle */
@@ -702,8 +704,8 @@
         #back-button {
             overflow: hidden;
             transition: all 0.15s ease;
-            min-width: 220px;
-            min-height: 100px;
+            min-width: 22rem;
+            min-height: 10rem;
         }
 
         #home-button {
@@ -713,7 +715,7 @@
         #home-button:active,
         #back-button:active {
             transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 2px 0.8rem rgba(74, 144, 226, 0.4);
             background: #2d6db5;
         }
 
@@ -745,7 +747,7 @@
 
         #featured-banner:active {
             transform: translateY(-50%) scale(0.97);
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 0.4rem 1.5rem rgba(74, 144, 226, 0.4);
         }
 
         /* Touch indicator pulse on interactive elements */
@@ -758,20 +760,20 @@
                 box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
             }
             100% {
-                box-shadow: 0 0 0 20px rgba(74, 144, 226, 0);
+                box-shadow: 0 0 0 2rem rgba(74, 144, 226, 0);
             }
         }
 
         /* Pin touch glow effect */
         .pin-touched {
-            filter: drop-shadow(0 0 20px rgba(74, 144, 226, 0.9)) drop-shadow(0 0 40px rgba(74, 144, 226, 0.6));
+            filter: drop-shadow(0 0 2rem rgba(74, 144, 226, 0.9)) drop-shadow(0 0 4rem rgba(74, 144, 226, 0.6));
         }
 
         /* Global touch feedback overlay */
         .touch-point {
             position: fixed;
-            width: 40px;
-            height: 40px;
+            width: 4rem;
+            height: 4rem;
             border: 2px solid rgba(74, 144, 226, 0.6);
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
@@ -792,16 +794,16 @@
         }
 #photo-banner {
     position: fixed;
-    top: 30px;
-    right: 30px;
-    width: 480px;
-    height: 300px;
-    border-radius: 16px;
+    top: 3rem;
+    right: 3rem;
+    width: 48rem;
+    height: 30rem;
+    border-radius: 1.6rem;
     overflow: hidden;
     cursor: pointer;
     z-index: 50;
     display: none;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 0.8rem 3rem rgba(0,0,0,0.5);
     transition: transform 0.3s ease;
 }
 
@@ -830,36 +832,36 @@
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 18px 24px;
+    padding: 1.8rem 2.4rem;
     background: linear-gradient(transparent, rgba(0,0,0,0.85));
     z-index: 2;
 }
 
 #photo-banner .banner-title {
-    font-size: 22px;
+    font-size: 2.2rem;
     font-weight: 600;
     color: #fff;
 }
 
 #photo-banner .banner-caption {
-    font-size: 18px;
+    font-size: 1.8rem;
     color: rgba(255,255,255,0.85);
-    margin-top: 4px;
+    margin-top: 0.4rem;
 }
 
 #photos-button {
     position: fixed;
-    top: 30px;
-    left: 30px;
+    top: 3rem;
+    left: 3rem;
     background: rgba(0,0,0,0.7);
     color: white;
     border: 1px solid rgba(255,255,255,0.25);
-    padding: 18px 28px;
-    border-radius: 12px;
+    padding: 1.8rem 2.8rem;
+    border-radius: 1.2rem;
     font-family: 'Brandon Grotesque', sans-serif;
-    font-size: 22px;
+    font-size: 2.2rem;
     font-weight: 500;
-    min-height: 64px;
+    min-height: 6.4rem;
     cursor: pointer;
     z-index: 100;
     display: none;
@@ -876,14 +878,14 @@
     background: rgba(74, 144, 226, 0.15);
     color: #4A90E2;
     border: 2px solid #4A90E2;
-    padding: 16px 24px;
-    border-radius: 12px;
+    padding: 1.6rem 2.4rem;
+    border-radius: 1.2rem;
     font-family: 'Brandon Grotesque', sans-serif;
-    font-size: 20px;
+    font-size: 2rem;
     font-weight: 600;
-    min-height: 64px;
+    min-height: 6.4rem;
     cursor: pointer;
-    margin-top: 12px;
+    margin-top: 1.2rem;
     width: 100%;
     transition: all 0.3s ease;
 }
@@ -996,6 +998,14 @@
     </div>
 
     <script>
+        // Convert a 4K design pixel value to CSS pixels for the current
+        // viewport (matches the CSS rule: 1rem = 10px at a 3840px viewport).
+        // Keeps JS-sized things (pins, card positioning, tap targets) at the
+        // same physical size on the 75" panel at any Windows display scaling.
+        function px4k(n) {
+            return n * (window.innerWidth / 3840);
+        }
+
         // ============================================
         // KIOSK WATCHDOG - auto-recover from fatal errors
         // ============================================
@@ -1241,11 +1251,14 @@
             document.getElementById('regional-count').textContent = `(${missionCounts.regional})`;
             document.getElementById('global-count').textContent = `(${missionCounts.global})`;
 
-            // Create custom pin billboard with actual logo
+            // Create custom pin billboard with actual logo.
+            // Drawn at 3x (144x192) so pins stay sharp at 4K display sizes;
+            // the billboard scale below compensates for the larger canvas.
             const pinCanvas = document.createElement('canvas');
-            pinCanvas.width = 48;
-            pinCanvas.height = 64;
+            pinCanvas.width = 144;
+            pinCanvas.height = 192;
             const ctx = pinCanvas.getContext('2d');
+            ctx.scale(3, 3);
 
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
@@ -1356,8 +1369,10 @@
                     // Create pin image
                     const pinImage = drawPinWithLogo(logoToUse, isFeatured);
 
-                    // Scale for this pin
-                    const pinScale = isFeatured ? 1.8 : 1.3;
+                    // Scale for this pin: target on-screen width in 4K design
+                    // pixels (120 normal, 168 featured), divided by the canvas
+                    // width so the physical size holds at any display scaling.
+                    const pinScale = px4k(isFeatured ? 168 : 120) / pinCanvas.width;
 
                     const entity = viewer.entities.add({
                         name: mission.name,
@@ -1450,14 +1465,14 @@
                 let left = screenPosition.x;
                 let top = screenPosition.y;
 
-                // Clamp horizontal position
-                const cardWidth = 420;
-                const minLeft = cardWidth / 2 + 20;
-                const maxLeft = window.innerWidth - cardWidth / 2 - 20;
+                // Clamp horizontal position (sizes in 4K design px, matching the CSS rem values)
+                const cardWidth = px4k(420);
+                const minLeft = cardWidth / 2 + px4k(20);
+                const maxLeft = window.innerWidth - cardWidth / 2 - px4k(20);
                 left = Math.max(minLeft, Math.min(maxLeft, left));
 
-                // Ensure vertical position has room for card (card is ~770px tall + 20px arrow)
-                const minTop = 800;
+                // Ensure vertical position has room for card (card is ~770 design px tall + 20px arrow)
+                const minTop = px4k(800);
                 top = Math.max(minTop, top);
 
                 previewCard.style.left = left + 'px';
@@ -1514,10 +1529,10 @@
 
                 // Position above the tap point, clamped to the screen
                 // (measure after activating so offsetHeight is valid)
-                const chooserWidth = 480;
-                let left = Math.max(chooserWidth / 2 + 20,
-                    Math.min(window.innerWidth - chooserWidth / 2 - 20, screenPosition.x));
-                let top = Math.max(missionChooser.offsetHeight + 40, screenPosition.y);
+                const chooserWidth = px4k(480);
+                let left = Math.max(chooserWidth / 2 + px4k(20),
+                    Math.min(window.innerWidth - chooserWidth / 2 - px4k(20), screenPosition.x));
+                let top = Math.max(missionChooser.offsetHeight + px4k(40), screenPosition.y);
                 missionChooser.style.left = left + 'px';
                 missionChooser.style.top = top + 'px';
             }
@@ -1585,11 +1600,12 @@
             });
 
             // Click handler - Two-tap system.
-            // drillPick with a 44px box gives a finger-sized tap target and
-            // finds ALL pins under the tap, so overlapping pins (e.g. the
-            // Springfield cluster) show a chooser instead of only the top pin.
+            // drillPick with a finger-sized box (60 4K-design px ≈ 2.5cm on the
+            // 75" panel) finds ALL pins under the tap, so overlapping pins (e.g.
+            // the Springfield cluster) show a chooser instead of only the top pin.
             handler.setInputAction(function (click) {
-                const picked = viewer.scene.drillPick(click.position, 30, 44, 44);
+                const tapBox = px4k(60);
+                const picked = viewer.scene.drillPick(click.position, 30, tapBox, tapBox);
 
                 // Collect distinct missions under the tap
                 const missionsAtPoint = [];
@@ -1770,9 +1786,9 @@
                     `;
                 } catch (error) {
                     contentDisplay.innerHTML = `
-                        <div style="padding: 40px; text-align: center; font-family: 'Brandon Grotesque', sans-serif;">
-                            <h2 style="color: #333; font-size: 28px;">Error Loading Content</h2>
-                            <p style="color: #666; font-size: 20px;">Unable to load mission information for ${mission.name}</p>
+                        <div style="padding: 4rem; text-align: center; font-family: 'Brandon Grotesque', sans-serif;">
+                            <h2 style="color: #333; font-size: 2.8rem;">Error Loading Content</h2>
+                            <p style="color: #666; font-size: 2rem;">Unable to load mission information for ${mission.name}</p>
                         </div>
                     `;
                 }
@@ -2175,8 +2191,8 @@
             ripple.className = 'ripple';
             ripple.style.left = x + 'px';
             ripple.style.top = y + 'px';
-            ripple.style.width = size + 'px';
-            ripple.style.height = size + 'px';
+            ripple.style.width = px4k(size) + 'px';
+            ripple.style.height = px4k(size) + 'px';
             document.body.appendChild(ripple);
 
             // Remove after animation completes
@@ -2205,8 +2221,8 @@
             ripple.className = 'button-ripple';
             ripple.style.left = x + 'px';
             ripple.style.top = y + 'px';
-            ripple.style.width = '20px';
-            ripple.style.height = '20px';
+            ripple.style.width = px4k(20) + 'px';
+            ripple.style.height = px4k(20) + 'px';
 
             button.appendChild(ripple);
 

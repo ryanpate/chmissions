@@ -17,7 +17,16 @@
             padding: 0;
             cursor: none;
         }
-        
+
+        /* Proportional root font-size so the screensaver renders the same
+           physical size on the 75" 4K panel at any Windows display scaling.
+           1rem = 15px at a 3840px-wide viewport - larger than index.html's
+           scale because this screen is viewed from across the room.
+           Smaller divisor = bigger everything. */
+        html {
+            font-size: calc(100vw / 256);
+        }
+
         body {
             width: 100vw;
             height: 100vh;
@@ -64,24 +73,24 @@
 
         .mission-caption {
             position: fixed;
-            bottom: 60px;
-            left: 70px;
+            bottom: 6rem;
+            left: 7rem;
             z-index: 1;
             display: none;
         }
 
         .mission-caption .caption-name {
-            font-size: 46px;
+            font-size: 4.6rem;
             font-weight: 600;
             color: #fff;
-            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 2px 1.5rem rgba(0, 0, 0, 0.8);
         }
 
         .mission-caption .caption-location {
-            font-size: 30px;
+            font-size: 3rem;
             color: rgba(255, 255, 255, 0.85);
-            margin-top: 8px;
-            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+            margin-top: 0.8rem;
+            text-shadow: 0 2px 1.5rem rgba(0, 0, 0, 0.8);
         }
 
         /* Keep the main content above the photo layers */
@@ -94,35 +103,35 @@
 
         .logo-container {
             animation: float 6s ease-in-out infinite;
-            margin-bottom: 60px;
+            margin-bottom: 6rem;
         }
 
         .logo {
-            width: 480px;
-            height: 480px;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+            width: 48rem;
+            height: 48rem;
+            filter: drop-shadow(0 2rem 4rem rgba(0,0,0,0.5));
         }
 
         .touch-text {
-            font-size: 64px;
+            font-size: 6.4rem;
             color: #fff;
             font-weight: 600;
-            letter-spacing: 3px;
+            letter-spacing: 0.3rem;
             animation: pulse 2s ease-in-out infinite;
-            text-shadow: 0 4px 20px rgba(74, 144, 226, 0.5);
+            text-shadow: 0 0.4rem 2rem rgba(74, 144, 226, 0.5);
         }
 
         .subtitle {
-            font-size: 32px;
+            font-size: 3.2rem;
             color: #4A90E2;
-            margin-top: 28px;
+            margin-top: 2.8rem;
             letter-spacing: 1px;
             opacity: 0.85;
         }
         
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-2rem); }
         }
         
         @keyframes pulse {
@@ -176,9 +185,9 @@
 
         .touch-ring {
             position: fixed;
-            width: 80px;
-            height: 80px;
-            border: 4px solid rgba(255, 255, 255, 0.9);
+            width: 8rem;
+            height: 8rem;
+            border: 0.4rem solid rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
             animation: touch-ring-expand 0.5s ease-out forwards;
@@ -336,8 +345,8 @@
             ripple.className = 'touch-ripple';
             ripple.style.left = x + 'px';
             ripple.style.top = y + 'px';
-            ripple.style.width = '400px';
-            ripple.style.height = '400px';
+            ripple.style.width = '40rem';
+            ripple.style.height = '40rem';
             document.body.appendChild(ripple);
 
             // Create ring
