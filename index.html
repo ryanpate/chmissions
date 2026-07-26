@@ -1159,10 +1159,15 @@
                 // Render at native device resolution. The default (true)
                 // renders at CSS resolution, which the kiosk's ~300% Windows
                 // scaling stretches 3x onto the 4K panel - pixelated globe
-                // and pins. If rotation ever stutters on the kiosk PC, soften
-                // with viewer.resolutionScale = 0.75 instead of reverting.
+                // and pins.
                 useBrowserRecommendedResolution: false
             });
+
+            // Full native res (3840x2160) made the idle rotation stutter on
+            // the kiosk mini PC. 75% (2880x1620) is ~44% fewer pixels per
+            // frame but still ~2.25x the old CSS resolution, so pins stay
+            // sharp. Drop further (e.g. 0.6) if the TV still stutters.
+            viewer.resolutionScale = 0.75;
 
             // If the render loop crashes (WebGL context loss on a long-running
             // kiosk), Cesium stops rendering permanently - recover via watchdog.
