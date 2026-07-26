@@ -51,13 +51,33 @@
             z-index: 0;
         }
 
-        .photo-layer img {
+        /* Each slide is the same photo twice: a blurred, zoomed copy that
+           fills the screen, and the full uncropped photo on top - so faces
+           are never cut off regardless of the photo's aspect ratio. */
+        .attract-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .attract-slide img {
             position: absolute;
             width: 100%;
             height: 100%;
+        }
+
+        .attract-slide .slide-backdrop {
             object-fit: cover;
-            opacity: 0;
-            transition: opacity 1.5s ease;
+            filter: blur(2rem) brightness(0.6);
+            transform: scale(1.1); /* hide the blur's soft edge fringe */
+        }
+
+        .attract-slide .slide-photo {
+            object-fit: contain;
         }
 
         .photo-scrim {
@@ -262,8 +282,14 @@
 <body>
     <div class="bg-animation"></div>
     <div class="photo-layer">
-        <img id="attract-img-1" src="" alt="">
-        <img id="attract-img-2" src="" alt="">
+        <div class="attract-slide" id="attract-slide-1">
+            <img class="slide-backdrop" src="" alt="" aria-hidden="true">
+            <img class="slide-photo" src="" alt="">
+        </div>
+        <div class="attract-slide" id="attract-slide-2">
+            <img class="slide-backdrop" src="" alt="" aria-hidden="true">
+            <img class="slide-photo" src="" alt="">
+        </div>
     </div>
     <div class="photo-scrim" id="photo-scrim"></div>
     <div class="mission-caption" id="mission-caption">
@@ -305,19 +331,20 @@
                 [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
             }
 
-            const img1 = document.getElementById('attract-img-1');
-            const img2 = document.getElementById('attract-img-2');
+            const slide1 = document.getElementById('attract-slide-1');
+            const slide2 = document.getElementById('attract-slide-2');
             let index = 0;
             let activeImg = 0; // 0 = none shown yet
 
             function showPhoto(i) {
                 const m = withPhotos[i];
-                const next = activeImg === 1 ? img2 : img1;
-                const curr = activeImg === 1 ? img1 : img2;
-                next.onload = function () {
+                const next = activeImg === 1 ? slide2 : slide1;
+                const curr = activeImg === 1 ? slide1 : slide2;
+                const photo = next.querySelector('.slide-photo');
+                photo.onload = function () {
                     next.style.opacity = 1;
                     if (curr !== next) curr.style.opacity = 0;
-                    activeImg = next === img1 ? 1 : 2;
+                    activeImg = next === slide1 ? 1 : 2;
                     document.getElementById('photo-scrim').style.display = 'block';
                     const caption = document.getElementById('mission-caption');
                     caption.style.display = 'block';
@@ -325,8 +352,9 @@
                     document.getElementById('caption-location').textContent = m.location || '';
                 };
                 // On failure do nothing - the next tick tries the next photo
-                next.onerror = function () {};
-                next.src = m.image;
+                photo.onerror = function () {};
+                photo.src = m.image;
+                next.querySelector('.slide-backdrop').src = m.image;
             }
 
             showPhoto(0);
