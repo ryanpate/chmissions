@@ -67,8 +67,8 @@ git push
 
 ## Kiosk Behaviors
 
-- **90 sec inactivity:** Returns to home/featured mission view
-- **3 min inactivity:** Shows screensaver
+- **90 sec inactivity:** Closes open panels and starts the idle tour (flies partner to partner showing each preview card; any touch stops it)
+- **6.5 min inactivity:** Shows screensaver
 - **12-hour interval:** Auto-refreshes for content updates
 - **Daily reboot:** Windows mini PC reboots to ensure fresh state
 

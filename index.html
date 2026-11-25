@@ -2236,61 +2236,102 @@
                 item.addEventListener('click', () => tourNextMission(item.dataset.type));
             });
 
+            // Idle tour - once the kiosk has been left alone, fly from
+            // partner to partner showing each preview card, as a moving
+            // invitation for people walking past. Any touch stops it. It
+            // runs until the screensaver timer below takes over.
+            const TOUR_FLIGHT_SECONDS = 4;
+            const TOUR_DWELL_MS = 8000; // how long each card stays up
+            let idleTourActive = false;
+            let idleTourTimer = null;
+            let idleTourQueue = [];
+
+            function startIdleTour() {
+                if (missions.length === 0) return;
+                idleTourActive = true;
+                stopGlobeRotation();
+                document.getElementById('touch-prompt').classList.add('active');
+                idleTourStep();
+            }
+
+            function stopIdleTour() {
+                if (!idleTourActive) return;
+                idleTourActive = false;
+                clearTimeout(idleTourTimer);
+                viewer.camera.cancelFlight();
+            }
+
+            function idleTourStep() {
+                if (!idleTourActive) return;
+                hidePreviewCard();
+
+                // Refill with a fresh shuffle each lap, featured mission first
+                if (idleTourQueue.length === 0) {
+                    idleTourQueue = missions.slice();
+                    for (let i = idleTourQueue.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [idleTourQueue[i], idleTourQueue[j]] = [idleTourQueue[j], idleTourQueue[i]];
+                    }
+                    if (featuredMission) {
+                        idleTourQueue.sort((a, b) =>
+                            (b.name === featuredMission.name) - (a.name === featuredMission.name));
+                    }
+                }
+
+                const mission = idleTourQueue.shift();
+                const entity = viewer.entities.values.find(en =>
+                    en.properties && en.properties.mission &&
+                    en.properties.mission.getValue().name === mission.name
+                );
+                if (!entity) {
+                    idleTourTimer = setTimeout(idleTourStep, 0);
+                    return;
+                }
+
+                const zoomDistance = mission.type === 'local' ? 50000 :
+                    mission.type === 'regional' ? 300000 : 1000000;
+
+                viewer.flyTo(entity, {
+                    duration: TOUR_FLIGHT_SECONDS,
+                    offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, zoomDistance)
+                }).then(function (finished) {
+                    if (!finished || !idleTourActive) return;
+                    const windowPos = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+                        viewer.scene,
+                        entity.position.getValue(viewer.clock.currentTime)
+                    );
+                    if (windowPos) {
+                        showPreviewCard(mission, entity, windowPos);
+                    }
+                    idleTourTimer = setTimeout(idleTourStep, TOUR_DWELL_MS);
+                });
+            }
+
             // Inactivity timer
             let inactivityTimer;
 
             function resetInactivityTimer() {
                 clearTimeout(inactivityTimer);
                 inactivityTimer = setTimeout(() => {
-                    // Return to featured mission or home
+                    // Nobody is here - close whatever was left open and
+                    // start the idle tour for the next visitor
                     document.getElementById('content-frame').classList.remove('active');
                     document.getElementById('partners-screen').classList.remove('active');
-
-                    // Hide preview card and chooser if showing
                     document.getElementById('mission-preview').classList.remove('active');
                     document.getElementById('mission-chooser').classList.remove('active');
 
-                    if (featuredMission) {
-                        const featured = missions.find(m => m.name === featuredMission.name);
-                        if (featured) {
-                            viewer.camera.flyTo({
-                                destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
-                                orientation: {
-                                    heading: 0.0,
-                                    pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down
-                                    roll: 0.0
-                                },
-                                duration: 3.0,
-                                easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-                            });
-                        }
-                    } else {
-                        viewer.camera.flyTo({
-                            destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
-                            orientation: {
-                                heading: 0.0,
-                                pitch: -Cesium.Math.PI_OVER_TWO,
-                                roll: 0.0
-                            },
-                            duration: 3.0,
-                            easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-                        });
-                    }
-
-                    // Panels are closed now, so return to the idle state
-                    // (rotation + touch prompt) for the next visitor
-                    startGlobeRotation();
+                    startIdleTour();
                 }, 90000); // 90 seconds
             }
 
-            // Screensaver timer (3 minutes)
+            // Screensaver timer (6.5 minutes: 90s idle + about 5 min of idle tour)
             let screensaverTimer;
 
             function resetScreensaverTimer() {
                 clearTimeout(screensaverTimer);
                 screensaverTimer = setTimeout(() => {
                     window.location.href = 'screensaver.html';
-                }, 180000); // 3 minutes
+                }, 390000); // 6.5 minutes
             }
 
             // Add screensaver reset to all interactions
@@ -2474,6 +2515,7 @@
 
             // Stop rotation and reschedule on any interaction
             function handleUserInteraction() {
+                stopIdleTour();
                 document.getElementById('touch-prompt').classList.remove('active');
                 stopGlobeRotation();
                 scheduleRotationStart();
