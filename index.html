@@ -76,34 +76,46 @@
             height: 100%;
         }
 
+        /* One-line gesture hint, bottom-left */
         #instructions {
             position: absolute;
             bottom: 3rem;
             left: 3rem;
             background: rgba(0, 0, 0, 0.7);
-            padding: 2.4rem 3rem;
+            padding: 1.6rem 2.4rem;
             border-radius: 1.4rem;
-            max-width: 42rem;
             z-index: 1000;
             backdrop-filter: blur(1rem);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #instructions h2 {
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 2.8rem;
-            margin-bottom: 1.6rem;
-            color: #4A90E2;
-            font-weight: 600;
-        }
-
-        #instructions p {
-            font-family: 'Brandon Grotesque', sans-serif;
             font-size: 2.2rem;
-            line-height: 1.6;
-            margin-bottom: 1rem;
             color: #ddd;
-            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        /* Idle invitation - shown while nobody is touching the globe */
+        #touch-prompt {
+            position: absolute;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            font-size: 4.4rem;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 0.2rem 1.5rem rgba(0, 0, 0, 0.9);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #touch-prompt.active {
+            animation: prompt-pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes prompt-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
 
         #home-button {
@@ -560,12 +572,6 @@
             to { transform: rotate(360deg); }
         }
 
-        .logo {
-            width: 22rem;
-            height: auto;
-            margin-bottom: 1.8rem;
-        }
-
         /* Hide Cesium UI elements for kiosk mode */
         .cesium-viewer-toolbar,
         .cesium-viewer-animationContainer,
@@ -947,15 +953,9 @@
     <!-- Photos Gallery Button -->
     <button id="photos-button">Photos</button>
 
-    <div id="instructions">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40'%3E%3Ctext x='10' y='40' font-family='Arial, sans-serif' font-size='24' font-weight='bold' fill='%234A90E2'%3ECH Missions%3C/text%3E%3C/svg%3E"
-            alt="Logo" class="logo">
-        <h2>How to Use</h2>
-        <p>🌍 <strong>Rotate Globe:</strong> Touch and Drag to Explore</p>
-        <p>🔍 <strong>Zoom:</strong> Drag 2 Fingers UP/DOWN</p>
-        <p>📍 <strong>View Mission:</strong> Touch on Any Pin</p>
-        <p>🏠 <strong>Reset View:</strong> Touch Home button</p>
-    </div>
+    <div id="touch-prompt" class="active">Touch a pin to meet our mission partners</div>
+
+    <div id="instructions">Drag to spin &middot; Two fingers up/down to zoom &middot; Tap a pin</div>
 
     <div id="mission-legend">
         <div class="legend-title">
@@ -1943,6 +1943,10 @@
                             easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
                         });
                     }
+
+                    // Panels are closed now, so return to the idle state
+                    // (rotation + touch prompt) for the next visitor
+                    startGlobeRotation();
                 }, 90000); // 90 seconds
             }
 
@@ -2091,6 +2095,7 @@
 
                 isRotating = true;
                 lastRotationTime = Date.now();
+                document.getElementById('touch-prompt').classList.add('active');
                 console.log('Globe rotation started');
             }
 
@@ -2134,6 +2139,7 @@
 
             // Stop rotation and reschedule on any interaction
             function handleUserInteraction() {
+                document.getElementById('touch-prompt').classList.remove('active');
                 stopGlobeRotation();
                 scheduleRotationStart();
             }
