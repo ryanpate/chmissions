@@ -1796,6 +1796,17 @@
                             sandbox="allow-same-origin"
                         ></iframe>
                     `;
+
+                    // Touches inside the iframe don't reach this document, so
+                    // forward them - otherwise the idle timers would close the
+                    // page on someone who is still reading/scrolling it.
+                    const frame = contentDisplay.querySelector('iframe');
+                    frame.addEventListener('load', () => {
+                        ['touchstart', 'click', 'wheel', 'scroll'].forEach(evt =>
+                            frame.contentDocument.addEventListener(evt,
+                                () => document.dispatchEvent(new Event('mousemove')),
+                                { passive: true, capture: true }));
+                    });
                 } catch (error) {
                     contentDisplay.innerHTML = `
                         <div style="padding: 4rem; text-align: center; font-family: 'Brandon Grotesque', sans-serif;">
@@ -1932,17 +1943,17 @@
                             easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
                         });
                     }
-                }, 600000); // 10 minutes
+                }, 90000); // 90 seconds
             }
 
-            // Screensaver timer (30 minutes)
+            // Screensaver timer (3 minutes)
             let screensaverTimer;
 
             function resetScreensaverTimer() {
                 clearTimeout(screensaverTimer);
                 screensaverTimer = setTimeout(() => {
                     window.location.href = 'screensaver.html';
-                }, 1800000); // 30 minutes
+                }, 180000); // 3 minutes
             }
 
             // Add screensaver reset to all interactions

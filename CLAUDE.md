@@ -67,8 +67,8 @@ git push
 
 ## Kiosk Behaviors
 
-- **10 min inactivity:** Returns to home/featured mission view
-- **30 min inactivity:** Shows screensaver
+- **90 sec inactivity:** Returns to home/featured mission view
+- **3 min inactivity:** Shows screensaver
 - **12-hour interval:** Auto-refreshes for content updates
 - **Daily reboot:** Windows mini PC reboots to ensure fresh state
 
