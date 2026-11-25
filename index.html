@@ -921,7 +921,7 @@
                     Continue reading on your phone
                 </div>
             </div>
-            <button class="preview-cta" id="preview-cta">View Info</button>
+            <button class="preview-cta" id="preview-cta">Read Their Story</button>
             <button class="preview-photos-btn" id="preview-photos-btn" style="display: none;">Trip Photos</button>
             <div class="preview-hint">Tap elsewhere to close</div>
         </div>
@@ -1706,37 +1706,9 @@
                 hidePreviewCard();
                 hideMissionChooser();
 
-                // Determine where to return to
-                let targetView;
-                if (featuredMission) {
-                    const featured = missions.find(m => m.name === featuredMission.name);
-                    if (featured) {
-                        targetView = {
-                            destination: Cesium.Cartesian3.fromDegrees(featured.lng, featured.lat, 12000000),
-                            orientation: {
-                                heading: 0.0,
-                                pitch: -Cesium.Math.PI_OVER_TWO, // Looking straight down
-                                roll: 0.0
-                            }
-                        };
-                    }
-                } else {
-                    targetView = {
-                        destination: Cesium.Cartesian3.fromDegrees(-89.65, 39.8, 15000000),
-                        orientation: {
-                            heading: 0.0,
-                            pitch: -Cesium.Math.PI_OVER_TWO,
-                            roll: 0.0
-                        }
-                    };
-                }
-
-                viewer.camera.flyTo({
-                    ...targetView,
-                    duration: 3.0,
-                    easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
-                });
-
+                // The camera hasn't moved while the page was open, so the
+                // globe is still where the visitor left it - the Home button
+                // is there if they want the full view.
                 resetInactivityTimer();
             });
 
