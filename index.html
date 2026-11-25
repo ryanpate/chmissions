@@ -1787,7 +1787,16 @@
 
                 try {
                     const response = await fetch(`pages/${mission.localFile}`);
-                    const html = await response.text();
+                    // The page is a scrape of the church website. Tidy it for
+                    // the kiosk: colour photo (the site only colours it on
+                    // hover), no website header/footer, left-aligned text.
+                    const kioskStyles = `<style>
+                        .mission-profile-image { filter: none !important; }
+                        #loading, #header-section, .footer-section { display: none !important; }
+                        p { text-align: left !important; }
+                    </style>`;
+                    const html = (await response.text())
+                        .replace('Tag Manager --&gt;', '') + kioskStyles;
 
                     contentDisplay.innerHTML = `
                         <iframe
