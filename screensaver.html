@@ -86,15 +86,17 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(10, 10, 30, 0.6);
+            /* Darken only the bottom band behind the call to action, so the
+               photo itself stays bright */
+            background: linear-gradient(to top, rgba(10, 10, 30, 0.9) 0%, rgba(10, 10, 30, 0) 45%);
             z-index: 0;
             display: none;
         }
 
         .mission-caption {
             position: fixed;
-            bottom: 6rem;
-            left: 7rem;
+            top: 5rem;
+            left: 6rem;
             z-index: 1;
             display: none;
         }
@@ -151,6 +153,34 @@
             opacity: 0.85;
         }
         
+        /* Photo mode (set once the first mission photo loads): move the logo
+           and call to action off the centre of the photo so they never cover
+           faces. Caption top-left, logo top-right, call to action along the
+           bottom. Without photos the centred static layout above remains. */
+        body.has-photos {
+            justify-content: flex-end;
+            padding-bottom: 6rem;
+            box-sizing: border-box;
+        }
+
+        body.has-photos .logo-container {
+            position: fixed;
+            top: 5rem;
+            right: 6rem;
+            margin-bottom: 0;
+            animation: none;
+        }
+
+        body.has-photos .logo {
+            width: 16rem;
+            height: 16rem;
+            opacity: 0.9;
+        }
+
+        body.has-photos .subtitle {
+            color: #fff;
+        }
+
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-2rem); }
@@ -348,6 +378,7 @@
                     if (curr !== next) curr.style.opacity = 0;
                     activeImg = next === slide1 ? 1 : 2;
                     document.getElementById('photo-scrim').style.display = 'block';
+                    document.body.classList.add('has-photos');
                     const caption = document.getElementById('mission-caption');
                     caption.style.display = 'block';
                     document.getElementById('caption-name').textContent = m.name;
