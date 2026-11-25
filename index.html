@@ -262,8 +262,9 @@
             display: flex;
         }
 
-        /* Back button - in the detail screen's bottom bar */
-        #back-button {
+        /* Back buttons - in the detail and all-partners bottom bars */
+        #back-button,
+        #partners-back {
             position: relative; /* anchors the button ripple */
             background: #4A90E2;
             color: white;
@@ -282,12 +283,14 @@
         }
 
         @media (hover: hover) {
-            #back-button:hover {
+            #back-button:hover,
+            #partners-back:hover {
                 background: #357ABD;
             }
         }
 
-        #back-button:active {
+        #back-button:active,
+        #partners-back:active {
             background: #2d6db5;
             transform: scale(0.98);
         }
@@ -423,6 +426,143 @@
         #next-button:active {
             transform: scale(0.97);
             background: rgba(74, 144, 226, 0.3);
+        }
+
+        /* All Partners - button on the globe, stacked above Home */
+        #partners-button {
+            position: absolute;
+            bottom: 14.6rem;
+            right: 3rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 0 4rem;
+            border-radius: 4rem;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 600;
+            min-width: 22rem;
+            min-height: 9.6rem;
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(1rem);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        #partners-button:active {
+            transform: scale(0.97);
+            background: rgba(74, 144, 226, 0.6);
+        }
+
+        /* All Partners - full-screen photo grid. Sits just under the
+           detail screen so Back from a partner returns to the grid. */
+        #partners-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 1900;
+            display: none;
+            flex-direction: column;
+        }
+
+        #partners-screen.active {
+            display: flex;
+        }
+
+        #partners-screen h1 {
+            font-size: 6.4rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #222;
+            padding: 5rem 8rem 3rem;
+        }
+
+        #partners-grid {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            align-content: start;
+            gap: 3rem;
+            padding: 0 8rem 3rem;
+        }
+
+        .partner-card {
+            background: none;
+            border: none;
+            padding: 0;
+            text-align: left;
+            font-family: 'Brandon Grotesque', sans-serif;
+            cursor: pointer;
+        }
+
+        .partner-card[hidden] {
+            display: none;
+        }
+
+        .partner-card img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 10 / 11;
+            object-fit: cover;
+            object-position: top;
+            border-radius: 1.6rem;
+            background: #eee;
+            transition: transform 0.15s ease;
+        }
+
+        .partner-card:active img {
+            transform: scale(0.97);
+        }
+
+        .partner-card-name {
+            display: block;
+            margin-top: 1.2rem;
+            font-size: 2.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #222;
+        }
+
+        .partner-card-location {
+            display: block;
+            margin-top: 0.4rem;
+            font-size: 2.2rem;
+            color: #666;
+        }
+
+        #partners-bar {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 3rem;
+            background: #f5f5f5;
+        }
+
+        .partners-filter {
+            background: none;
+            color: #357ABD;
+            border: 2px solid #4A90E2;
+            padding: 0 4rem;
+            border-radius: 4rem;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 3.2rem;
+            font-weight: 600;
+            min-height: 10rem;
+            cursor: pointer;
+        }
+
+        .partners-filter.selected {
+            background: #4A90E2;
+            color: #fff;
+        }
+
+        #partners-back {
+            margin-left: auto;
         }
 
         /* Mission Preview Card */
@@ -769,7 +909,8 @@
         }
 
         /* Enhanced Button States for 75" Touch */
-        #back-button {
+        #back-button,
+        #partners-back {
             overflow: hidden;
             transition: all 0.15s ease;
             min-width: 22rem;
@@ -781,7 +922,8 @@
         }
 
         #home-button:active,
-        #back-button:active {
+        #back-button:active,
+        #partners-back:active {
             transform: scale(0.95);
             box-shadow: 0 2px 0.8rem rgba(74, 144, 226, 0.4);
             background: #2d6db5;
@@ -1050,7 +1192,21 @@
         </div>
     </div>
 
+    <button id="partners-button">All Partners</button>
+
     <button id="home-button">🏠 Home</button>
+
+    <div id="partners-screen">
+        <h1>Our Mission Partners</h1>
+        <div id="partners-grid"></div>
+        <div id="partners-bar">
+            <button class="partners-filter" data-type="all">All</button>
+            <button class="partners-filter" data-type="local">Local</button>
+            <button class="partners-filter" data-type="regional">Regional</button>
+            <button class="partners-filter" data-type="global">Global</button>
+            <button id="partners-back">← Back to Globe</button>
+        </div>
+    </div>
 
     <div id="content-frame">
         <div id="detail">
@@ -1878,6 +2034,11 @@
                 story.textContent = '';
                 story.scrollTop = 0;
 
+                // Opened from the All Partners grid? Then Back returns there.
+                document.getElementById('back-button').textContent =
+                    document.getElementById('partners-screen').classList.contains('active')
+                        ? '← Back to Partners' : '← Back to Globe';
+
                 document.getElementById('content-frame').classList.add('active');
                 resetInactivityTimer();
 
@@ -1901,27 +2062,93 @@
                 }
             }
 
+            // Jump the globe (no animation) to a mission while a full-screen
+            // panel covers it, so Back to Globe lands on the partner just read.
+            function moveGlobeTo(mission) {
+                const entity = viewer.entities.values.find(en =>
+                    en.properties && en.properties.mission &&
+                    en.properties.mission.getValue().name === mission.name
+                );
+                if (!entity) return;
+                const zoomDistance = mission.type === 'local' ? 50000 :
+                    mission.type === 'regional' ? 300000 : 1000000;
+                viewer.flyTo(entity, {
+                    duration: 0,
+                    offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, zoomDistance)
+                });
+            }
+
             // Next Partner - step through the partners without going back
-            // to the globe. The camera moves underneath so Back to Globe
-            // lands on the partner just read.
+            // to the globe.
             document.getElementById('next-button').addEventListener('click', () => {
                 const index = missions.findIndex(m => m.name === currentDetailName);
                 const next = missions[(index + 1) % missions.length];
+                moveGlobeTo(next);
+                showMissionContent(next);
+            });
 
-                const entity = viewer.entities.values.find(en =>
-                    en.properties && en.properties.mission &&
-                    en.properties.mission.getValue().name === next.name
-                );
-                if (entity) {
-                    const zoomDistance = next.type === 'local' ? 50000 :
-                        next.type === 'regional' ? 300000 : 1000000;
-                    viewer.flyTo(entity, {
-                        duration: 0,
-                        offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, zoomDistance)
-                    });
+            // All Partners grid - every partner as a photo card, so visitors
+            // can see the whole list (including pins on the far side of the
+            // globe) and filter it by type.
+            const partnersScreen = document.getElementById('partners-screen');
+            const partnersGrid = document.getElementById('partners-grid');
+
+            missions.forEach(mission => {
+                const card = document.createElement('button');
+                card.className = 'partner-card';
+                card.dataset.type = mission.type || 'local';
+
+                if (mission.image) {
+                    const img = document.createElement('img');
+                    img.src = mission.image;
+                    img.alt = '';
+                    img.loading = 'lazy'; // not fetched until the grid is opened
+                    card.appendChild(img);
                 }
 
-                showMissionContent(next);
+                const name = document.createElement('span');
+                name.className = 'partner-card-name';
+                name.textContent = mission.name;
+                card.appendChild(name);
+
+                const location = document.createElement('span');
+                location.className = 'partner-card-location';
+                location.textContent = getLocationName(mission);
+                card.appendChild(location);
+
+                card.addEventListener('click', () => {
+                    moveGlobeTo(mission);
+                    showMissionContent(mission);
+                });
+                partnersGrid.appendChild(card);
+            });
+
+            function filterPartners(type) {
+                document.querySelectorAll('.partners-filter').forEach(btn =>
+                    btn.classList.toggle('selected', btn.dataset.type === type));
+                partnersGrid.querySelectorAll('.partner-card').forEach(card => {
+                    card.hidden = type !== 'all' && card.dataset.type !== type;
+                });
+                partnersGrid.scrollTop = 0;
+            }
+
+            document.querySelectorAll('.partners-filter').forEach(btn => {
+                const type = btn.dataset.type;
+                const count = type === 'all' ? missions.length :
+                    missions.filter(m => (m.type || 'local') === type).length;
+                btn.textContent += ` (${count})`;
+                btn.addEventListener('click', () => filterPartners(type));
+            });
+
+            document.getElementById('partners-button').addEventListener('click', () => {
+                hidePreviewCard();
+                hideMissionChooser();
+                filterPartners('all');
+                partnersScreen.classList.add('active');
+            });
+
+            document.getElementById('partners-back').addEventListener('click', () => {
+                partnersScreen.classList.remove('active');
             });
 
             // Add click handler for featured mission banner
@@ -2017,6 +2244,7 @@
                 inactivityTimer = setTimeout(() => {
                     // Return to featured mission or home
                     document.getElementById('content-frame').classList.remove('active');
+                    document.getElementById('partners-screen').classList.remove('active');
 
                     // Hide preview card and chooser if showing
                     document.getElementById('mission-preview').classList.remove('active');
@@ -2193,6 +2421,7 @@
 
                 // Don't rotate if content panel, preview, or chooser is open
                 if (document.getElementById('content-frame').classList.contains('active') ||
+                    document.getElementById('partners-screen').classList.contains('active') ||
                     document.getElementById('mission-preview').classList.contains('active') ||
                     document.getElementById('mission-chooser').classList.contains('active')) {
                     return;
@@ -2225,6 +2454,7 @@
 
                 // Don't rotate if content, preview, or chooser is showing
                 if (document.getElementById('content-frame').classList.contains('active') ||
+                    document.getElementById('partners-screen').classList.contains('active') ||
                     document.getElementById('mission-preview').classList.contains('active') ||
                     document.getElementById('mission-chooser').classList.contains('active')) {
                     stopGlobeRotation();
@@ -2376,7 +2606,7 @@
 
         // Add touch feedback to buttons
         function setupButtonFeedback() {
-            const buttons = document.querySelectorAll('#home-button, #back-button, #featured-banner');
+            const buttons = document.querySelectorAll('#home-button, #back-button, #partners-back, #featured-banner');
 
             buttons.forEach(button => {
                 button.addEventListener('click', function(e) {
