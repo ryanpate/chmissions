@@ -262,11 +262,9 @@
             display: flex;
         }
 
-        /* Back button fixed at bottom of content panel */
+        /* Back button - in the detail screen's bottom bar */
         #back-button {
-            position: fixed;
-            bottom: 3rem;
-            right: 3rem;
+            position: relative; /* anchors the button ripple */
             background: #4A90E2;
             color: white;
             border: none;
@@ -276,9 +274,10 @@
             font-size: 3.6rem;
             font-weight: 600;
             cursor: pointer;
-            z-index: 2001;
             transition: all 0.2s ease;
-            display: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 0.6rem 2.5rem rgba(74, 144, 226, 0.4);
         }
 
@@ -293,47 +292,137 @@
             transform: scale(0.98);
         }
 
-        #content-frame.active #back-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #content-display {
+        /* Native mission detail screen: photo left, story right, action
+           bar along the bottom. Content comes from missions.json plus the
+           story text extracted from the scraped page. */
+        #detail {
             flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10rem;
+            padding: 10rem 14rem 4rem;
+            background: #fff;
+        }
+
+        #detail-photo {
+            width: 90rem;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 2.4rem;
+            flex-shrink: 0;
+        }
+
+        #detail-body {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #detail-name {
+            font-size: 9rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #222;
+        }
+
+        #detail-location {
+            font-size: 4.4rem;
+            color: #666;
+            margin: 1rem 0 4rem;
+        }
+
+        #detail-story {
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
+            max-width: 180rem;
+            padding-right: 3rem;
+            font-size: 4.6rem;
+            line-height: 1.5;
             color: #333;
-            background: #ffffff;
-            width: 100%;
-            height: 100%;
         }
 
-        #content-display iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
+        #detail-story p,
+        #detail-story ul,
+        #detail-story blockquote {
+            margin-bottom: 2rem;
         }
 
-        /* Scrollbar styling for content panel - wide for touch dragging */
-        #content-display::-webkit-scrollbar {
+        #detail-story ul {
+            padding-left: 4rem;
+        }
+
+        #detail-story strong,
+        #detail-story b {
+            font-weight: 600;
+        }
+
+        /* Scrollbar styling for the story - wide for touch dragging */
+        #detail-story::-webkit-scrollbar {
             width: 2.4rem;
         }
 
-        #content-display::-webkit-scrollbar-track {
+        #detail-story::-webkit-scrollbar-track {
             background: #f0f0f0;
         }
 
-        #content-display::-webkit-scrollbar-thumb {
+        #detail-story::-webkit-scrollbar-thumb {
             background: #4A90E2;
             border-radius: 1.2rem;
             border: 0.4rem solid #f0f0f0;
         }
 
-        @media (hover: hover) {
-            #content-display::-webkit-scrollbar-thumb:hover {
-                background: #357ABD;
-            }
+        #detail-bar {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            padding: 3rem;
+        }
+
+        #detail-qr-block {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-right: auto;
+            font-size: 3rem;
+            line-height: 1.4;
+            color: #666;
+        }
+
+        #detail-qr-block strong {
+            display: block;
+            font-size: 3.6rem;
+            color: #333;
+        }
+
+        #detail-qr {
+            width: 18rem;
+            height: 18rem;
+            background: #fff;
+            padding: 0.6rem;
+            border-radius: 1rem;
+        }
+
+        #next-button {
+            background: rgba(74, 144, 226, 0.15);
+            color: #357ABD;
+            border: 2px solid #4A90E2;
+            padding: 2.8rem 5.6rem;
+            border-radius: 4rem;
+            font-family: 'Brandon Grotesque', sans-serif;
+            font-size: 3.6rem;
+            font-weight: 600;
+            min-height: 10rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        #next-button:active {
+            transform: scale(0.97);
+            background: rgba(74, 144, 226, 0.3);
         }
 
         /* Mission Preview Card */
@@ -543,33 +632,6 @@
             text-align: center;
             padding: 1.6rem;
             border-top: 1px solid #eee;
-        }
-
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            font-family: 'Brandon Grotesque', sans-serif;
-            font-size: 2.8rem;
-            font-weight: 500;
-            color: #4A90E2;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .loading::before {
-            content: '';
-            width: 5rem;
-            height: 5rem;
-            border: 0.4rem solid #e0e0e0;
-            border-top-color: #4A90E2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         /* Hide Cesium UI elements for kiosk mode */
@@ -991,10 +1053,25 @@
     <button id="home-button">🏠 Home</button>
 
     <div id="content-frame">
-        <div id="content-display">
-            <div class="loading">Loading mission information...</div>
+        <div id="detail">
+            <img id="detail-photo" alt="">
+            <div id="detail-body">
+                <h1 id="detail-name"></h1>
+                <div id="detail-location"></div>
+                <div id="detail-story"></div>
+            </div>
         </div>
-        <button id="back-button">← Back to Globe</button>
+        <div id="detail-bar">
+            <div id="detail-qr-block">
+                <img id="detail-qr" alt="QR Code">
+                <div>
+                    <strong>Scan to Learn More</strong>
+                    Continue reading on your phone
+                </div>
+            </div>
+            <button id="next-button">Next Partner →</button>
+            <button id="back-button">← Back to Globe</button>
+        </div>
     </div>
 
     <script>
@@ -1749,56 +1826,103 @@
                 return locations[mission.name] || 'International';
             }
 
-            // Show mission content (full screen)
-            async function showMissionContent(mission) {
-                const contentFrame = document.getElementById('content-frame');
-                const contentDisplay = document.getElementById('content-display');
+            // Copy the story out of a scraped page, keeping only plain
+            // formatting tags (no attributes, links, scripts or site styling)
+            const STORY_TAGS = ['P', 'STRONG', 'B', 'EM', 'UL', 'LI', 'BR', 'BLOCKQUOTE'];
 
-                // Show content panel full screen
-                contentFrame.classList.add('active');
+            function cleanStory(node) {
+                const out = document.createDocumentFragment();
+                node.childNodes.forEach(child => {
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        out.appendChild(document.createTextNode(child.textContent));
+                    } else if (child.nodeType === Node.ELEMENT_NODE) {
+                        const inner = cleanStory(child);
+                        if (!STORY_TAGS.includes(child.tagName)) {
+                            out.appendChild(inner);
+                            return;
+                        }
+                        const el = document.createElement(child.tagName);
+                        el.appendChild(inner);
+                        // Drop the site's empty spacer paragraphs
+                        if (child.tagName === 'P' && !el.textContent.trim()) return;
+                        out.appendChild(el);
+                    }
+                });
+                return out;
+            }
+
+            // Show mission content (full screen, kiosk-native layout).
+            // Name, location, photo and QR come from missions.json, so the
+            // screen still works if the scraped page is missing or the
+            // website's markup changes - only the story text depends on it.
+            let currentDetailName = null;
+
+            async function showMissionContent(mission) {
+                currentDetailName = mission.name;
+
+                document.getElementById('detail-name').textContent = mission.name;
+                document.getElementById('detail-location').textContent = getLocationName(mission);
+
+                const photo = document.getElementById('detail-photo');
+                if (mission.image) {
+                    photo.src = mission.image;
+                    photo.style.display = 'block';
+                } else {
+                    photo.style.display = 'none';
+                }
+
+                document.getElementById('detail-qr').src =
+                    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(mission.url)}`;
+
+                const story = document.getElementById('detail-story');
+                story.textContent = '';
+                story.scrollTop = 0;
+
+                document.getElementById('content-frame').classList.add('active');
+                resetInactivityTimer();
 
                 try {
                     const response = await fetch(`pages/${mission.localFile}`);
-                    // The page is a scrape of the church website. Tidy it for
-                    // the kiosk: colour photo (the site only colours it on
-                    // hover), no website header/footer, left-aligned text.
-                    const kioskStyles = `<style>
-                        .mission-profile-image { filter: none !important; }
-                        #loading, #header-section, .footer-section { display: none !important; }
-                        p { text-align: left !important; }
-                    </style>`;
-                    const html = (await response.text())
-                        .replace('Tag Manager --&gt;', '') + kioskStyles;
+                    const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+                    const source = page.querySelector('.mission-profile-text');
 
-                    contentDisplay.innerHTML = `
-                        <iframe
-                            srcdoc="${html.replace(/"/g, '&quot;')}"
-                            style="width: 100%; height: 100%; border: none; background: white;"
-                            sandbox="allow-same-origin"
-                        ></iframe>
-                    `;
+                    // Ignore a slow response if the visitor has moved on
+                    if (!source || currentDetailName !== mission.name) return;
+                    story.appendChild(cleanStory(source));
 
-                    // Touches inside the iframe don't reach this document, so
-                    // forward them - otherwise the idle timers would close the
-                    // page on someone who is still reading/scrolling it.
-                    const frame = contentDisplay.querySelector('iframe');
-                    frame.addEventListener('load', () => {
-                        ['touchstart', 'click', 'wheel', 'scroll'].forEach(evt =>
-                            frame.contentDocument.addEventListener(evt,
-                                () => document.dispatchEvent(new Event('mousemove')),
-                                { passive: true, capture: true }));
+                    // The site's Q&A labels are lowercase ("favorite book:")
+                    story.querySelectorAll('p > strong, p > b').forEach(label => {
+                        if (label.previousSibling) return;
+                        const text = label.textContent.replace('?:', '?');
+                        label.textContent = text.charAt(0).toUpperCase() + text.slice(1);
                     });
                 } catch (error) {
-                    contentDisplay.innerHTML = `
-                        <div style="padding: 4rem; text-align: center; font-family: 'Brandon Grotesque', sans-serif;">
-                            <h2 style="color: #333; font-size: 2.8rem;">Error Loading Content</h2>
-                            <p style="color: #666; font-size: 2rem;">Unable to load mission information for ${mission.name}</p>
-                        </div>
-                    `;
+                    // Leave the story empty - the rest of the screen still shows
+                }
+            }
+
+            // Next Partner - step through the partners without going back
+            // to the globe. The camera moves underneath so Back to Globe
+            // lands on the partner just read.
+            document.getElementById('next-button').addEventListener('click', () => {
+                const index = missions.findIndex(m => m.name === currentDetailName);
+                const next = missions[(index + 1) % missions.length];
+
+                const entity = viewer.entities.values.find(en =>
+                    en.properties && en.properties.mission &&
+                    en.properties.mission.getValue().name === next.name
+                );
+                if (entity) {
+                    const zoomDistance = next.type === 'local' ? 50000 :
+                        next.type === 'regional' ? 300000 : 1000000;
+                    viewer.flyTo(entity, {
+                        duration: 0,
+                        offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, zoomDistance)
+                    });
                 }
 
-                resetInactivityTimer();
-            }
+                showMissionContent(next);
+            });
 
             // Add click handler for featured mission banner
             if (featuredMission) {
